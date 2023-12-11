@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html class="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>AdsWeb Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+  <header class="bg-success">
+    <nav class="container py-2">
+      <h5 class="text-white">Bot AdsWeb <span>1.0</span></h5>
+    </nav>
+  </header>
+  <main class="container">
+    <div class="row p-3">
+
+      <!-- Mode Start -->
+      <div class="col-lg-4 border p-3 rounded">
+        <div class="mb-3">
+          <h6 class="fw-semibold">Mode Start :</h6>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="gMode">
+            <label class="form-check-label" for="gMode">Google</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="bMode">
+            <label class="form-check-label" for="bMode">Blog Page</label>
+          </div>
+
+          <div class="mb-3">
+            <label for="files" class="form-label fw-bold">Files Blog</label>
+            <input class="form-control" type="file" id="files">
+          </div>
+        </div>
+
+        <div class="">
+          <h6 class="fw-semibold">Mode Visit :</h6>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mView">
+            <label class="form-check-label" for="mView">Mode View</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mBanner">
+            <label class="form-check-label" for="mBanner">Banner</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mBannerBla">
+            <label class="form-check-label" for="mBannerBla">Banner Blabla</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mSB">
+            <label class="form-check-label" for="mSB">Social Bar</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mPU">
+            <label class="form-check-label" for="mPU">Pop Under</label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col-lg-4 border p-3 rounded">
+
+        <div class="mb-3">
+          <label for="countVisitAds" class="form-label">Repeat Visit Ads</label>
+          <input type="number" class="form-control" id="countVisitAds" placeholder="2">
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-semibold">Options :</h6>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="visibleMode">
+            <label class="form-check-label" for="visibleMode">Visible Mode</label>
+          </div>
+
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-semibold">UserAgent :</h6>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="uMobile">
+            <label class="form-check-label" for="uMobile">Mobile</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="uDesktop">
+            <label class="form-check-label" for="uDesktop">Desktop</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="uRandom">
+            <label class="form-check-label" for="uRandom">Random</label>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="col-lg-4 border p-3 rounded">
+
+      </div>
+
+    </div>
+
+    <div class="d-flex gap-2 align-items-center mb-3">
+      <div class="progress w-100" role="progressbar" aria-label="Animated striped example" aria-valuenow="75"
+        aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 75%">75%</div>
+      </div>
+      <button type="button" id="start" class="btn btn-success">Start</button>
+      <button type="button" id="stop" class="btn btn-danger">Stop</button>
+    </div>
+
+    <div class="mb-3">
+      <textarea readonly class="form-control" id="exampleFormControlTextarea1" rows="5"></textarea>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+    integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+  </script>
+
+  <script src="./preload.js"></script>
+</body>
+
+</html>
