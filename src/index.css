@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    font-family: 'Roboto', sans-serif;
+    -webkit-user-select: none;
+    cursor: default;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    background: url('../src/assets/bg.svg') no-repeat center;
+    background-size: 25%;
+    backdrop-filter: blur(5px);
+}
+
+.form-check-input:checked {
+    background-color : #198754 !important;
+    border-color: #198754 !important;
+}
