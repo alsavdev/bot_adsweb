@@ -19,9 +19,6 @@ body::-webkit-scrollbar {
 body {
     -ms-overflow-style: none;
     scrollbar-width: none;
-    background: url('../src/assets/bg.svg') no-repeat center;
-    background-size: 25%;
-    backdrop-filter: blur(5px);
 }
 
 .form-check-input:checked {

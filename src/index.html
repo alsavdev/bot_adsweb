@@ -16,18 +16,19 @@
 
 <body>
 
-  <header class="bg-success">
+  <header class="bg-success sticky-top">
     <nav class="container py-2">
       <h5 class="text-white">Bot AdsWeb <span>1.0</span></h5>
     </nav>
   </header>
-  <main class="container">
-    <div class="row p-3">
+  <main class="container p-3">
+    <div class="d-flex flex-column flex-lg-row justify-content-lg-center panel gap-3 mb-3">
 
       <!-- Mode Start -->
-      <div class="col-lg-4 border p-3 rounded">
+      <div class="w-100 border p-3 rounded">
         <div class="mb-3">
           <h6 class="fw-semibold">Mode Start :</h6>
+
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="gMode">
             <label class="form-check-label" for="gMode">Google</label>
@@ -47,18 +48,10 @@
           <h6 class="fw-semibold">Mode Visit :</h6>
 
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mView">
-            <label class="form-check-label" for="mView">Mode View</label>
-          </div>
-          <div class="form-check form-switch">
             <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mBanner">
             <label class="form-check-label" for="mBanner">Banner</label>
           </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mBannerBla">
-            <label class="form-check-label" for="mBannerBla">Banner Blabla</label>
-          </div>
           <div class="form-check form-switch">
             <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mSB">
             <label class="form-check-label" for="mSB">Social Bar</label>
@@ -68,23 +61,103 @@
             <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mPU">
             <label class="form-check-label" for="mPU">Pop Under</label>
           </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="directLink">
+            <label class="form-check-label" for="directLink">Direct Link</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-100 border p-3 rounded">
+
+        <div class="mb-3">
+          <h6 class="fw-semibold">Mode Visit DirectLink :</h6>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="yt">
+            <label class="form-check-label" for="yt">Youtube</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="twitter">
+            <label class="form-check-label" for="twitter">Twitter</label>
+          </div>
+
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="ig">
+            <label class="form-check-label" for="ig">Instagram</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="moz">
+            <label class="form-check-label" for="moz">URL Link Direct(MOZ)</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="blogDirect">
+            <label class="form-check-label" for="blogDirect">Blog Direct</label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3">
+          <div class="mb-3">
+            <input type="number" class="form-control" id="countVisitAds" placeholder="2">
+            <small>repeat visit ads</small>
+          </div>
+          <div class="mb-3">
+            <input type="number" class="form-control" id="loop" placeholder="2">
+            <small>loop</small>
+          </div>
+        </div>
+
+        <div class="form-check form-switch">
+          <input class="form-check-input modeVisit" type="checkbox" role="switch" id="recentPost">
+          <label class="form-check-label" for="recentPost">Recent Post</label>
         </div>
 
       </div>
 
-      <div class="col-lg-4 border p-3 rounded">
+      <div class="w-100 border p-3 rounded">
 
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="captcha">
+          <label class="form-check-label" for="captcha">Captcha</label>
+        </div>
         <div class="mb-3">
-          <label for="countVisitAds" class="form-label">Repeat Visit Ads</label>
-          <input type="number" class="form-control" id="countVisitAds" placeholder="2">
+          <textarea class="form-control" id="apikey" rows="1" placeholder="apikey captcha < provider >"></textarea>
         </div>
 
+        <h6 class="fw-semibold">Scroll Page :</h6>
+        <span class="">Article (min-max)</span>
+        <div class="d-flex gap-3 mb-3">
+          <input type="number" class="form-control" id="articleMin" placeholder="2">
+          <input type="number" class="form-control" id="articleMax" placeholder="2">
+        </div>
+        <span class="">Ads (min-max)</span>
+        <div class="d-flex gap-3">
+          <input type="number" class="form-control" id="adsMin" placeholder="2">
+          <input type="number" class="form-control" id="adsMax" placeholder="2">
+        </div>
+
+      </div>
+
+      <div class="w-100 border p-3 rounded">
         <div class="mb-3">
           <h6 class="fw-semibold">Options :</h6>
 
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="visibleMode">
-            <label class="form-check-label" for="visibleMode">Visible Mode</label>
+            <label class="form-check-label" for="visibleMode">Visible</label>
+          </div>
+
+          <div class="d-flex gap-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="whoer">
+              <label class="form-check-label" for="whoer">Whoer</label>
+            </div>
+  
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="ipsaya">
+              <label class="form-check-label" for="ipsaya">IpSaya</label>
+            </div>
           </div>
 
         </div>
@@ -92,26 +165,44 @@
         <div class="mb-3">
           <h6 class="fw-semibold">UserAgent :</h6>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="uMobile">
-            <label class="form-check-label" for="uMobile">Mobile</label>
+          <div class="d-flex gap-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="uMobile">
+              <label class="form-check-label" for="uMobile">Mobile</label>
+            </div>
+
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="uDesktop">
+              <label class="form-check-label" for="uDesktop">Desktop</label>
+            </div>
           </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="uDesktop">
-            <label class="form-check-label" for="uDesktop">Desktop</label>
-          </div>
+          <div class="d-flex gap-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="uRandom">
+              <label class="form-check-label" for="uRandom">Random</label>
+            </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="uRandom">
-            <label class="form-check-label" for="uRandom">Random</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="iphone">
+              <label class="form-check-label" for="iphone">Iphone</label>
+            </div>
           </div>
 
         </div>
 
-      </div>
-      <div class="col-lg-4 border p-3 rounded">
-
+        <h6 class="fw-semibold">Conection Options :</h6>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="proxy">
+          <label class="form-check-label" for="proxy">Proxy</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="ProxySequence">
+          <label class="form-check-label" for="ProxySequence">Proxy Sequence</label>
+        </div>
+        <div class="">
+          <textarea class="form-control" id="proxyField" rows="1" placeholder="user:passwd@ip:port"></textarea>
+        </div>
       </div>
 
     </div>
@@ -126,7 +217,7 @@
     </div>
 
     <div class="mb-3">
-      <textarea readonly class="form-control" id="exampleFormControlTextarea1" rows="5"></textarea>
+      <textarea readonly class="form-control" id="log" rows="5"></textarea>
     </div>
   </main>
 

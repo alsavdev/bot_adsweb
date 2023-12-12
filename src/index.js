@@ -7,12 +7,12 @@ if (require('electron-squirrel-startup')) {
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
-    width: 1024,
+    width: 1280,
     height: 660,
     titleBarStyle: "hidden",
     titleBarOverlay: {
       color: "#fff",
-      symbolColor: "#0d6efd",
+      symbolColor: "#198754",
     },
     webPreferences: {
       devTools: !app.isPackaged,
