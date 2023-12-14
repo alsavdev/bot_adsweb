@@ -34,7 +34,7 @@
             <label class="form-check-label" for="gMode">Google</label>
           </div>
           <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" role="switch" id="bMode">
+            <input class="form-check-input" type="checkbox" role="switch" id="bMode" checked>
             <label class="form-check-label" for="bMode">Blog Page</label>
           </div>
 
@@ -58,7 +58,7 @@
           </div>
 
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mPU">
+            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mPU" checked>
             <label class="form-check-label" for="mPU">Pop Under</label>
           </div>
           <div class="form-check form-switch">
@@ -74,42 +74,42 @@
           <h6 class="fw-semibold">Mode Visit DirectLink :</h6>
 
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="yt">
+            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="yt">
             <label class="form-check-label" for="yt">Youtube</label>
           </div>
 
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="twitter">
+            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="twitter">
             <label class="form-check-label" for="twitter">Twitter</label>
           </div>
 
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="ig">
+            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="ig">
             <label class="form-check-label" for="ig">Instagram</label>
           </div>
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="moz">
+            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="moz">
             <label class="form-check-label" for="moz">URL Link Direct(MOZ)</label>
           </div>
           <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="blogDirect">
+            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="blogDirect">
             <label class="form-check-label" for="blogDirect">Blog Direct</label>
           </div>
         </div>
 
         <div class="d-flex gap-3">
           <div class="mb-3">
-            <input type="number" class="form-control" id="countVisitAds" placeholder="2">
+            <input type="number" class="form-control" id="countVisitAds" value="2" placeholder="2">
             <small>repeat visit ads</small>
           </div>
           <div class="mb-3">
-            <input type="number" class="form-control" id="loop" placeholder="2">
+            <input type="number" class="form-control" id="loop" value="2" placeholder="2">
             <small>loop</small>
           </div>
         </div>
 
         <div class="form-check form-switch">
-          <input class="form-check-input modeVisit" type="checkbox" role="switch" id="recentPost">
+          <input class="form-check-input" type="checkbox" role="switch" id="recentPost" checked>
           <label class="form-check-label" for="recentPost">Recent Post</label>
         </div>
 
@@ -128,13 +128,13 @@
         <h6 class="fw-semibold">Scroll Page :</h6>
         <span class="">Article (min-max)</span>
         <div class="d-flex gap-3 mb-3">
-          <input type="number" class="form-control" id="articleMin" placeholder="2">
-          <input type="number" class="form-control" id="articleMax" placeholder="2">
+          <input type="number" class="form-control articleTimes" id="articleMin" value="2" placeholder="2">
+          <input type="number" class="form-control articleTimes" id="articleMax" value="3" placeholder="2">
         </div>
         <span class="">Ads (min-max)</span>
         <div class="d-flex gap-3">
-          <input type="number" class="form-control" id="adsMin" placeholder="2">
-          <input type="number" class="form-control" id="adsMax" placeholder="2">
+          <input type="number" class="form-control adsTimes" id="adsMin" value="2" placeholder="2">
+          <input type="number" class="form-control adsTimes" id="adsMax" value="3" placeholder="2">
         </div>
 
       </div>
@@ -167,24 +167,24 @@
 
           <div class="d-flex gap-3">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="uMobile">
+              <input class="form-check-input ua" type="checkbox" role="switch" id="uMobile" checked>
               <label class="form-check-label" for="uMobile">Mobile</label>
             </div>
 
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="uDesktop">
+              <input class="form-check-input ua" type="checkbox" role="switch" id="uDesktop">
               <label class="form-check-label" for="uDesktop">Desktop</label>
             </div>
           </div>
 
           <div class="d-flex gap-3">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="uRandom">
+              <input class="form-check-input ua" type="checkbox" role="switch" id="uRandom">
               <label class="form-check-label" for="uRandom">Random</label>
             </div>
 
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="iphone">
+              <input class="form-check-input ua" type="checkbox" role="switch" id="iphone">
               <label class="form-check-label" for="iphone">Iphone</label>
             </div>
           </div>
@@ -208,9 +208,9 @@
     </div>
 
     <div class="d-flex gap-2 align-items-center mb-3">
-      <div class="progress w-100" role="progressbar" aria-label="Animated striped example" aria-valuenow="75"
+      <div class="progress w-100" role="progressbar" aria-label="Animated striped example"
         aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 75%">75%</div>
+        <div id="progs" class="progress-bar bg-success progress-bar-striped progress-bar-animated"></div>
       </div>
       <button type="button" id="start" class="btn btn-success">Start</button>
       <button type="button" id="stop" class="btn btn-danger">Stop</button>
