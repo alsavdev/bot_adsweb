@@ -1,11 +1,12 @@
-const swal = require('sweetalert2/dist/sweetalert2')
 const {
     ipcRenderer
-} = require('electron')
+} = require('electron');
+const {
+    default: Swal
+} = require('sweetalert2');
 const gMode = document.getElementById('gMode');
 const bMode = document.getElementById('bMode');
 const files = document.getElementById('files');
-const mView = document.getElementById('mView');
 const mBanner = document.getElementById('mBanner');
 const mSB = document.getElementById('mSB');
 const mPU = document.getElementById('mPU');
@@ -40,13 +41,16 @@ const [adsMin, adsMax] = document.querySelectorAll('.adsTimes')
 const log = document.getElementById('log')
 const progs = document.getElementById('progs')
 
-
 document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector("header").style.webkitAppRegion = 'drag'
     proxyField.disabled = true
     apikey.disabled = true
     stopBtn.disabled = true
+
+    const firstMode = [gMode, bMode, mBanner, mSB, mPU, directLink, recentPost]
+    const secondMode = [yt, twitter, ig, moz, blogDirect]
+    const allElement = [...firstMode, ...secondMode, countVisitAds, loop, captcha, apikey, articleMin, articleMax, adsMin, adsMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files]
 
     gMode.addEventListener('change', function () {
         if (gMode.checked) {
@@ -101,16 +105,34 @@ document.addEventListener('DOMContentLoaded', () => {
             proxyField.disabled = false
         } else {
             proxyField.disabled = true
+            proxyField.value = ""
         }
 
         if (captcha.checked) {
             apikey.disabled = false
         } else {
             apikey.disabled = true
+            apikey.value = ""
+        }
+
+        if (gMode.checked) {
+            Swal.fire({
+                icon : "info",
+                title: "Information !",
+                text : "Remember google mode need captcha service !"
+            })
         }
     })
 
-    function extractdata() {
+    function Toast(model,msg) {
+        Swal.fire({
+            icon: model,
+            title: model === "error" ? "Oops..." : "Is there something wrong ?",
+            text: msg,
+        });
+    } 
+
+    function extractData() {
         const data = {
             googleMode: gMode.checked,
             blogMode: bMode.checked,
@@ -128,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loop: loop.value,
             recentPost: recentPost.checked,
             captcha: captcha.checked,
-            captapiCaptcha: apikey.value,
+            apikey: apikey.value,
             articleTimes: [articleMin.value, articleMax.value],
             adsTimes: [adsMin.value, adsMax.value],
             view: visibleMode.checked ? false : 'new',
@@ -137,22 +159,72 @@ document.addEventListener('DOMContentLoaded', () => {
             proxy: proxy.checked,
             ProxySequence: ProxySequence.checked,
             proxyField: proxyField.value,
-            uDesktop : uDesktop.checked,
-            uMobile : uMobile.checked,
-            uRandom : uRandom.checked,
-            iphone : iphone.checked,
+            uDesktop: uDesktop.checked,
+            uMobile: uMobile.checked,
+            uRandom: uRandom.checked,
+            iphone: iphone.checked,
         }
 
-        ipcRenderer.send('main-proccess', data);
+        let valid;
+
+        let firstModeValidate = false;
+        let secondModeValidate = false;
+
+        firstMode.forEach((modeObject) => {
+            if (modeObject.checked) {
+                firstModeValidate = true;
+            }
+        });
+
+        secondMode.forEach((modeObject) => {
+            if (modeObject.checked) {
+                secondModeValidate = true;
+            }
+        });
+
+        if (!firstModeValidate && !secondModeValidate) {
+            Toast("error", "Visit mode or visit direct link mode must be selected")
+        } else if (files.value === "") {
+            Toast("error", "Files can't be null")
+        } else if (captcha.checked && apikey.value == "") {
+            Toast("question", "Captcha is on but apikey is null")
+        } else if (proxy.checked && proxyField.value == "") {
+            Toast("question", "Proxy is on but proxyfield is null")
+        } else {
+            valid = true
+        }
+
+        if (valid) {
+            progs.style.width = ''
+            progs.setAttribute('aria-valuenow', '0')
+            progs.innerHTML = '0%'
+            ipcRenderer.send('main-proccess', data);
+        }
     }
 
-    startBtn.addEventListener('click', extractdata)
+    startBtn.addEventListener('click', extractData)
+
+    ipcRenderer.on('run', () => {
+        allElement.forEach(e => {
+            e.disabled = true
+            startBtn.disabled = true
+            stopBtn.disabled = false
+        })
+    })
+
+    ipcRenderer.on('force', () => {
+        allElement.forEach(e => {
+            e.disabled = false
+            startBtn.disabled = false
+            stopBtn.disabled = true
+        })
+    })
 
     stopBtn.addEventListener('click', () => {
         if (confirm("Realy want to stop the proccess ?") == true) {
             ipcRenderer.send('stop');
-            startBtn.classList.remove("hidden")
-            stopBtn.classList.add("hidden")
+            startBtn.disabled = false
+            stopBtn.disabled = true
         }
     })
 
@@ -173,4 +245,19 @@ document.addEventListener('DOMContentLoaded', () => {
             proggress(pros);
         }
     });
+
+    secondMode.forEach((e, i) => {
+        firstMode.forEach((j) => {
+            e.addEventListener('change', () => {
+                if (e.checked) {
+                    j.checked = false
+                }
+            })
+            j.addEventListener('change', () => {
+                if (j.checked) {
+                    e.checked = false
+                }
+            })
+        })
+    })
 })
