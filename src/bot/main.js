@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer-extra')
 const path = require('path');
-const fs = require('fs')
+const fs = require('fs');
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
 const stealth = require("puppeteer-extra-plugin-stealth");
 const UserAgent = require('user-agents');
 puppeteer.use(stealth());
@@ -11,6 +12,16 @@ let browser, page, pages, checkPop;
 
 const mainProccess = async (log, keyword, url, data) => {
     let saveProxy, proxyServer;
+
+    data.captcha && puppeteer.use(
+        RecaptchaPlugin({
+            provider: {
+                id: '2captcha',
+                token: data.apikey
+            },
+            visualFeedback: true
+        })
+    )
 
     if (data.proxy) {
         const raw = data.proxyField.split('@')
@@ -93,14 +104,86 @@ const mainProccess = async (log, keyword, url, data) => {
         })
 
 
-        await page.goto(url, {
-            waitUntil: ['networkidle2', 'domcontentloaded'],
-            timeout: 120000
-        })
+        if (data.googleMode) {
+            await page.goto('https://www.google.com/', {
+                waitUntil: ['networkidle2', 'domcontentloaded'],
+                timeout: 120000
+            })
+
+            if (data.captcha) {
+                try {
+                    const recaptchaResponse = await page.solveRecaptchas();
+                    if (recaptchaResponse.length > 0) {
+                        log("[INFO] Recaptcha solved");
+                        await page.waitForTimeout(2000);
+                    }
+                } catch (err) {
+                    console.error("Error solving reCAPTCHA:", err);
+                    log("[ERROR] Error solving reCAPTCHA");
+                    await browser.close()
+                    return;
+                }
+            }
+
+            await page.type('textarea[name="q"]', keyword);
+            log(`[INFO] Search: ${keyword}...`);
+
+            await Promise.all([
+                page.keyboard.press("Enter"),
+                data.blogMode ? page.waitForNavigation({
+                    waitUntil: 'networkidle2',
+                    timeout: 120000
+                }) : await page.sleep(10000)
+            ]);
+
+            if (data.captcha) {
+                const recaptchaResponse = await page.solveRecaptchas();
+                if (recaptchaResponse.length > 0) {
+                    log("[INFO] Recaptcha detected");
+                    await page.waitForTimeout(5000);
+                }
+            }
+
+            await scrollDownToBottom(page);
+
+            const hrefElements = await page.$$('[href]');
+            const hrefs = await Promise.all(hrefElements.map(element => element.evaluate(node => node.getAttribute('href'))));
+    
+            let linkFound = false;
+    
+            for (const href of hrefs) {
+                if (url.includes(href)) {
+                    log("[INFO] Article Found ✅");
+                    try {
+                        const element = await page.waitForXPath(`//a[@href="${href}"]`, {
+                            timeout: 10000
+                        });
+                        await element.click();
+                        linkFound = true;
+                        break;
+                    } catch (error) {
+                        log(`[ERROR] Error clicking the link: ${error}`);
+                        break;
+                    }
+                }
+            }
+    
+            if (!linkFound) {
+                log("[INFO] Article Not Found ❌: " + domain);
+                await closeClear(proxyC)
+                return
+            }
+
+        } else if (data.blogMode) {
+            await page.goto(url, {
+                waitUntil: ['networkidle2', 'domcontentloaded'],
+                timeout: 120000
+            })
+        }
 
         if (data.modePopUnder) {
-            log('Scroll Page Utama');
-            
+            log('[INFO] Scroll Page Utama');
+
             await scrollFuncAds(page, data, log)
 
             let loops = 0;
@@ -117,17 +200,17 @@ const mainProccess = async (log, keyword, url, data) => {
                     timeout: 120000
                 })
 
-                log('Finding the ads element');
+                log('[INFO] Finding the ads element');
                 const clickAds = await page.$$('body > div')
-                data.modePopUnder && clearInterval(checkPop)
+                clearInterval(checkPop)
 
                 if (clickAds.length > 0) {
                     try {
                         await clickAds[clickAds.length - 1].click();
-                        await page.sleep(10000);
+                        await page.sleep(20000);
                         pages = await browser.pages();
                     } catch (error) {
-                        log('Not Clickable:', error);
+                        log('[WARN] Not Clickable:', error);
                     }
                 } else {
                     return;
@@ -135,7 +218,7 @@ const mainProccess = async (log, keyword, url, data) => {
 
                 await page.waitForTimeout(timeout)
                 if (pages.length > 2) {
-                    log('Ads Found ✅');
+                    log('[INFO] Ads Found ✅');
                     const newTarget = await newTargetPromise;
                     const newPage = await newTarget.page();
                     await newPage.setUserAgent(userAgent.toString())
@@ -146,8 +229,8 @@ const mainProccess = async (log, keyword, url, data) => {
 
                     await newPage.waitForTimeout(20000)
 
-                    log('Page Iklan 1');
-                    log('Skenario Scroll');
+                    log('[INFO] Page Iklan 1');
+                    log('[INFO] Skenario Scroll');
 
                     blackListUrl.forEach(async (url) => {
                         if (await page.url().includes(url)) {
@@ -171,7 +254,7 @@ const mainProccess = async (log, keyword, url, data) => {
                             const onClickValue = await newPage.evaluate(e => e.getAttribute('onclick'), urls[random]);
 
                             if ((hrefValue !== '#' && hrefValue !== null) || onClickValue !== null || hrefValue !== "javascript:void(0);") {
-                                log(`Initiate click url href="${hrefValue}"`);
+                                log(`[INFO] Initiate click url href="${hrefValue}"`);
 
                                 if (hrefValue !== '#') {
                                     await Promise.all([
@@ -184,23 +267,23 @@ const mainProccess = async (log, keyword, url, data) => {
                                     await newPage.waitForTimeout(20000)
                                 }
                             } else {
-                                log('Url not found');
+                                log('[INFO] Url not found');
                                 return;
                             }
                         } catch (error) {
                             return;
                         }
 
-                        log('Page Iklan 2');
-                        log('Skenario scroll current page');
+                        log('[INFO] Page Iklan 2');
+                        log('[INFO] Skenario scroll current page');
                         await scrollFuncAds(newPage, data, log)
 
                     } else {
-                        log('Ads Not Found ❌');
+                        log('[INFO] Ads Not Found ❌');
                     }
 
                     pages = await browser.pages()
-                    log('Intiate Close all page except page 1 & 2');
+                    log('[INFO] Intiate Close all page except page 1 & 2');
                     for (let i = 2; i < pages.length; i++) {
                         if (i !== 0 && i !== 1) {
                             await pages[i].close();
@@ -208,11 +291,11 @@ const mainProccess = async (log, keyword, url, data) => {
                     }
 
                     page = pages[1]
-                    log('Done Visit Ads');
+                    !data.recentPost ? log('[INFO] Done Visit Ads\n') : log('[INFO] Done Visit Ads');
                     await page.sleep(10000)
                 } else {
-                    log('Ads Not Found ❌');
-                    data.modePopUnder && clearInterval(checkPop)
+                    !data.recentPost ? log('[INFO] Ads Not Found ❌\n') : log('[INFO] Ads Not Found ❌');
+                    clearInterval(checkPop)
                 }
                 loops++
             }
@@ -222,22 +305,22 @@ const mainProccess = async (log, keyword, url, data) => {
                 const randomRecentPost = Math.floor(Math.random() * (recentPost.length - 5))
                 const urlRecent = await page.evaluate((e) => e.getAttribute('href'), recentPost[randomRecentPost])
 
-                log(`\nGo To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
+                log(`\n[INFO] Go To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
                 recentPost.length > 0 && await page.goto(urlRecent, {
                     waitUntil: ['networkidle2', 'domcontentloaded'],
                     timeout: 120000
                 })
 
-                log('Scroll Recent Post Pages');
+                log('[INFO] Scroll Recent Post Pages\n');
                 await scrollFuncAds(page, data, log)
             }
         }
 
-        log('Done All');
+
         await browser.close()
     } catch (error) {
         data.modePopUnder && clearInterval(checkPop)
-        log(error)
+        log('[ERROR] ' + error + "\n")
         await browser.close()
     }
 };
@@ -319,7 +402,7 @@ const scrollFuncAds = async (newPage, data, log) => {
     const duration = Math.round(Math.random() * (max - min)) + min;
     const sleepDuration = duration * 60 * 1000;
     const convertMinutes = Math.floor((sleepDuration / 1000 / 60) % 60);
-    log("Scrolling page  for random range " + convertMinutes + " minute 🕐");
+    log("[INFO] Scrolling page  for random range " + convertMinutes + " minute 🕐");
     while (Date.now() - startTimes < sleepDuration) {
         await newPage.evaluate(() => {
             window.scrollBy(0, 100);
@@ -332,18 +415,40 @@ const scrollFuncAds = async (newPage, data, log) => {
     }
 };
 
+async function scrollDownToBottom(page) {
+    let lastScrollPosition = 0;
+    let retries = 3;
+
+    while (retries > 0) {
+        const currentScrollPosition = await page.evaluate(() => window.scrollY);
+        if (currentScrollPosition === lastScrollPosition) {
+            retries--;
+        } else {
+            retries = 3;
+        }
+
+        lastScrollPosition = currentScrollPosition;
+        await page.evaluate(() => window.scrollBy(0, 1000));
+        await page.waitForTimeout(1000);
+    }
+}
+
 const workFlow = async (log, progress, data) => {
     try {
         let loopCount = 0;
         const files = fs.readFileSync(data.files, 'utf-8').split('\n').filter(line => line.trim() !== "");
 
+        const totalIterations = files.length * data.loop;
+        let currentIteration = 0;
+
         while (loopCount < data.loop) {
-            for (let i = 0; i < files.length; i++) {
+            let i = 0;
+            while (i < files.length) {
                 const line = files[i];
 
                 let result;
                 if (data.googleMode) {
-                    const [keyword, url] = line.split(':');
+                    const [keyword, url] = line.split(';');
                     result = {
                         keyword: keyword.trim(),
                         url: url.trim()
@@ -357,7 +462,8 @@ const workFlow = async (log, progress, data) => {
 
                 try {
                     await mainProccess(log, result.keyword, result.url, data);
-                    const progressPercentage = parseInt(((i + 1) / files.length) * 100);
+                    currentIteration++;
+                    const progressPercentage = parseInt((currentIteration / totalIterations) * 100);
                     progress(progressPercentage);
                 } catch (error) {
                     log(error);
@@ -368,6 +474,8 @@ const workFlow = async (log, progress, data) => {
                     await browser.close();
                     break;
                 }
+
+                i++;
             }
 
             if (stop) {
@@ -381,6 +489,7 @@ const workFlow = async (log, progress, data) => {
         await browser.close();
     } catch (err) {
         log(err);
+        await browser.close();
     }
 };
 

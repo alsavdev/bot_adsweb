@@ -10,6 +10,7 @@
     font-family: 'Roboto', sans-serif;
     -webkit-user-select: none;
     cursor: default;
+    user-select: none;
 }
 
 body::-webkit-scrollbar {
@@ -22,6 +23,12 @@ body {
 }
 
 .form-check-input:checked {
-    background-color : #198754 !important;
+    background-color: #198754 !important;
     border-color: #198754 !important;
+}
+
+textarea:focus {
+    border: none;
+    background-color: transparent;
+    outline: none;
 }
