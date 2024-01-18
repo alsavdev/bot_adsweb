@@ -29,6 +29,8 @@ const ProxySequence = document.getElementById('ProxySequence')
 const proxyField = document.getElementById('proxyField')
 const captcha = document.getElementById('captcha')
 const apikey = document.getElementById('apikey')
+const buster = document.getElementById('buster')
+const busterkey = document.getElementById('busterkey')
 const yt = document.getElementById('yt')
 const twitter = document.getElementById('twitter')
 const ig = document.getElementById('ig')
@@ -39,6 +41,7 @@ const recentPost = document.getElementById('recentPost')
 const [articleMin, articleMax] = document.querySelectorAll('.articleTimes')
 const [adsMin, adsMax] = document.querySelectorAll('.adsTimes')
 const log = document.getElementById('log')
+const version = document.getElementById('version')
 const progs = document.getElementById('progs')
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,11 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector("header").style.webkitAppRegion = 'drag'
     proxyField.disabled = true
     apikey.disabled = true
+    busterkey.disabled = true
     stopBtn.disabled = true
 
     const firstMode = [gMode, bMode, mBanner, mSB, mPU, directLink, recentPost]
     const secondMode = [yt, twitter, ig, moz, blogDirect]
-    const allElement = [...firstMode, ...secondMode, countVisitAds, loop, captcha, apikey, articleMin, articleMax, adsMin, adsMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files]
+    const allElement = [...firstMode, ...secondMode, countVisitAds, loop, captcha, apikey, articleMin, articleMax, adsMin, adsMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files, buster, busterkey]
 
     gMode.addEventListener('change', function () {
         if (gMode.checked) {
@@ -114,7 +118,17 @@ document.addEventListener('DOMContentLoaded', () => {
             apikey.disabled = true
             apikey.value = ""
         }
+        
+        if (buster.checked) {
+            busterkey.disabled = false
+        } else {
+            busterkey.disabled = true
+            busterkey.value = ""
+        }
 
+    })
+    
+    gMode.addEventListener('change', () => {
         if (gMode.checked) {
             Swal.fire({
                 icon : "info",
@@ -163,6 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
             uMobile: uMobile.checked,
             uRandom: uRandom.checked,
             iphone: iphone.checked,
+            buster: buster.checked,
+            busterKey: busterkey.value
         }
 
         let valid;
@@ -260,4 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         })
     })
+
+    ipcRenderer.send('app_version');
+    ipcRenderer.on('app_version', (event, arg) => {
+        version.innerText = 'v' + arg.version;
+    });
 })

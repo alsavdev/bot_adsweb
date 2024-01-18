@@ -84,3 +84,9 @@ ipcMain.on('stop', (event) => {
   stopProccess(log);
   event.sender.send("force");
 });
+
+ipcMain.on('app_version', (event) => {
+  event.sender.send('app_version', {
+    version: app.getVersion()
+  });
+});

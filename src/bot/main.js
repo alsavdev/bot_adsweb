@@ -6,6 +6,7 @@ const stealth = require("puppeteer-extra-plugin-stealth");
 const UserAgent = require('user-agents');
 puppeteer.use(stealth());
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
+const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
 const timeout = 3000
 let stop = false
 let browser, page, pages, checkPop;
@@ -34,8 +35,8 @@ const mainProccess = async (log, keyword, url, data) => {
         headless: data.view,
         defaultViewport: null,
         args: [
-            `--disable-extensions-except=${spoof}`,
-            `--load-extension=${spoof}`,
+            data.buster ? `--disable-extensions-except=${spoof},${captcha}` : `--disable-extensions-except=${spoof}`,
+            data.buster ? `--load-extension=${spoof},${captcha}` : `--load-extension=${spoof}`,
             "--disable-setuid-sandbox",
             "--no-sandbox",
             "--mute-audio",
@@ -69,6 +70,10 @@ const mainProccess = async (log, keyword, url, data) => {
     page = await browser.newPage()
     pages = await browser.pages()
 
+    data.buster && page.on('load', async () => {
+        await solveCaptcha(log)
+    })
+
     await page.setUserAgent(userAgent.toString())
 
     if (data.modePopUnder) {
@@ -95,6 +100,8 @@ const mainProccess = async (log, keyword, url, data) => {
             username: `${saveProxy[0]}`,
             password: `${saveProxy[1]}`
         });
+        
+        data.buster && await handleBuster(data)
 
         data.whoer && await getWhoerData(log)
 
@@ -109,6 +116,10 @@ const mainProccess = async (log, keyword, url, data) => {
                 waitUntil: ['networkidle2', 'domcontentloaded'],
                 timeout: 120000
             })
+            await page.goto('https://www.google.com/', {
+                waitUntil: ['networkidle2', 'domcontentloaded'],
+                timeout: 120000
+            })
 
             if (data.captcha) {
                 try {
@@ -118,7 +129,7 @@ const mainProccess = async (log, keyword, url, data) => {
                         await page.waitForTimeout(2000);
                     }
                 } catch (err) {
-                    console.error("Error solving reCAPTCHA:", err);
+                    log("Error solving reCAPTCHA:", err);
                     log("[ERROR] Error solving reCAPTCHA");
                     await browser.close()
                     return;
@@ -169,8 +180,7 @@ const mainProccess = async (log, keyword, url, data) => {
             }
     
             if (!linkFound) {
-                log("[INFO] Article Not Found ❌: " + domain);
-                await closeClear(proxyC)
+                log("[INFO] Article Not Found ❌: " + url);
                 return
             }
 
@@ -393,6 +403,106 @@ const getWhoerData = async (log) => {
         log(`[ERROR] ${error}`)
         await browser.close()
     }
+}
+
+const handleBuster = async (data) => {
+    try {
+        const pathId = path.join(process.cwd(), 'src/bot/data/id.txt');
+        const id = fs.readFileSync(pathId, 'utf-8')
+        if (id === '') {
+            await page.goto('chrome://extensions', {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        } else {
+            await page.goto(`chrome-extension://${id.trim()}/src/options/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        }
+
+        if (id === '') {
+            const idExtension = await page.evaluateHandle(
+                'document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[0]'
+            );
+            await page.evaluate(e => e.style = "", idExtension)
+
+            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
+
+            await page.goto(`chrome-extension://${id}/src/options/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 60000
+            })
+
+            fs.writeFileSync(pathId, id)
+        }
+
+        await page.sleep(3000)
+
+        await page.evaluate(() => {
+            document.querySelector("#app > div > div:nth-child(1) > div.option-wrap > div.option.select > div > div.v-input__control > div > div.v-field__field > div").click()
+        })
+        await page.sleep(3000)
+        await page.evaluate(() => {
+            document.querySelector("body > div.v-overlay-container > div > div > div > div:nth-child(3)").click()
+        })
+
+        const addApi = await page.$('#app > div > div:nth-child(1) > div.option-wrap > div.wit-add-api > button')
+        addApi && await addApi.click()
+
+        const fieldApi = await page.waitForSelector('#input-18')
+        fieldApi && await fieldApi.type(data.busterKey)
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function solveCaptcha(log) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const captchaBox = await page.$('[title="reCAPTCHA"]')
+            if (captchaBox) {
+                log("Captcha Found Solve....");
+                await captchaBox.click()
+                const elIframe = await page.waitForSelector('iframe[title="recaptcha challenge expires in two minutes"]');
+                if (elIframe) {
+                    const iframe = await elIframe.contentFrame();
+                    if (iframe) {
+                        const body = await iframe.waitForSelector('body');
+                        if (body) {
+                            const solverButton = await body.waitForSelector('#solver-button');
+                            if (solverButton) {
+                                try {
+                                    await solverButton.click();
+                                    await page.sleep(10000);
+                                    log("Solved ✅");
+                                    resolve();
+                                } catch (error) {
+                                    log('Error clicking the button:', error.message);
+                                    reject(error);
+                                }
+                            } else {
+                                log('Button not found in the iframe body.');
+                                reject(new Error('Button not found in the iframe body.'));
+                            }
+                        } else {
+                            log('Body element not found in the iframe.');
+                            reject(new Error('Body element not found in the iframe.'));
+                        }
+                    } else {
+                        log('Content frame not found for the iframe.');
+                        reject(new Error('Content frame not found for the iframe.'));
+                    }
+                } else {
+                    log('Iframe with title "captcha" not found on the page.');
+                    reject(new Error('Iframe with title "captcha" not found on the page.'));
+                }
+            }
+        } catch (error) {
+            log(error);
+            reject(error);
+        }
+    });
 }
 
 const scrollFuncAds = async (newPage, data, log) => {
