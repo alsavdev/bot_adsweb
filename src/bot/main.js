@@ -30,6 +30,18 @@ const mainProccess = async (log, keyword, url, data) => {
         const [ip, port] = raw[1].split(':')
         proxyServer = `${ip}:${port}`
     }
+    let userAgent;
+    if (data.uDesktop) {
+         userAgent = new UserAgent({ deviceCategory:  'desktop' });
+    }else if (data.uMobile) {
+      userAgent = new UserAgent({ deviceCategory: 'mobile' });
+    }else if (data.iphone) {
+      userAgent = new UserAgent({ platform: 'iPhone' });
+    }else if (data.uRandom) {
+      userAgent = new UserAgent().random();
+    }else{
+      userAgent = new UserAgent().random();
+    }
 
     browser = await puppeteer.launch({
         headless: data.view,
@@ -37,31 +49,13 @@ const mainProccess = async (log, keyword, url, data) => {
         args: [
             data.buster ? `--disable-extensions-except=${spoof},${captcha}` : `--disable-extensions-except=${spoof}`,
             data.buster ? `--load-extension=${spoof},${captcha}` : `--load-extension=${spoof}`,
+            `--user-agent=${userAgent.toString()}`,
             "--disable-setuid-sandbox",
             "--no-sandbox",
             "--mute-audio",
             data.proxy ? `--proxy-server=${proxyServer}` : null
         ].filter(Boolean)
     })
-
-    let deviceCategory = '';
-
-    if (data.uDesktop) {
-        deviceCategory = 'desktop';
-    } else if (data.uMobile) {
-        deviceCategory = 'mobile';
-    } else if (data.uRandom) {
-        deviceCategory = 'random';
-    }
-
-    const userAgent = !data.iphone ?
-        new UserAgent({
-            deviceCategory: deviceCategory
-        }) :
-        new UserAgent({
-            platform: 'iPhone'
-        });
-
 
     const blackListUrl = [
         'confirm-action'
@@ -73,21 +67,6 @@ const mainProccess = async (log, keyword, url, data) => {
     data.buster && page.on('load', async () => {
         await solveCaptcha(log)
     })
-
-    await page.setUserAgent(userAgent.toString())
-
-    if (data.modePopUnder) {
-        checkPop = setInterval(async () => {
-            pages = await browser.pages()
-            if (pages.length > 2) {
-                for (let i = 2; i < pages.length; i++) {
-                    if (i !== 0 && i !== 1) {
-                        await pages[i].close();
-                    }
-                }
-            }
-        }, 2000)
-    }
 
     page.sleep = function (timeout) {
         return new Promise(function (resolve) {
@@ -134,6 +113,22 @@ const mainProccess = async (log, keyword, url, data) => {
                     await browser.close()
                     return;
                 }
+            }
+            await page.sleep(5000)
+    
+            const accept = await page.$('#L2AGLb');
+    
+            if (accept) {
+                log("Accept Found ✅");
+                const bahasa = await page.$('#vc3jof');
+                await bahasa.click();
+                await page.waitForSelector('li[aria-label="‪English‬"]');
+                await page.click('li[aria-label="‪English‬"]');
+                await page.sleep(5000)
+                const accept = await page.$('#L2AGLb');
+                await accept.click()
+            } else {
+                log("Accept Not Found ❌");
             }
 
             await page.type('textarea[name="q"]', keyword);
@@ -183,7 +178,6 @@ const mainProccess = async (log, keyword, url, data) => {
                 log("[INFO] Article Not Found ❌: " + url);
                 return
             }
-
         } else if (data.blogMode) {
             await page.goto(url, {
                 waitUntil: ['networkidle2', 'domcontentloaded'],
@@ -191,142 +185,23 @@ const mainProccess = async (log, keyword, url, data) => {
             })
         }
 
-        if (data.modePopUnder) {
-            log('[INFO] Scroll Page Utama');
-
+            await page.sleep(10000);
             await scrollFuncAds(page, data, log)
 
-            let loops = 0;
-            while (loops < data.repeat) {
-                log(`\nLoop ${loops}`);
-                const newTargetPromise = new Promise((resolve) => {
-                    browser.once('targetcreated', (target) => {
-                        resolve(target);
-                    });
-                });
-
-                await page.waitForSelector('body', {
-                    waitUntil: ['networkidle2', 'domcontentloaded'],
-                    timeout: 120000
-                })
-
-                log('[INFO] Finding the ads element');
-                const clickAds = await page.$$('body > div')
-                clearInterval(checkPop)
-
-                if (clickAds.length > 0) {
-                    try {
-                        await clickAds[clickAds.length - 1].click();
-                        await page.sleep(20000);
-                        pages = await browser.pages();
-                    } catch (error) {
-                        log('[WARN] Not Clickable:', error);
-                    }
-                } else {
-                    return;
-                }
-
-                await page.waitForTimeout(timeout)
-                if (pages.length > 2) {
-                    log('[INFO] Ads Found ✅');
-                    const newTarget = await newTargetPromise;
-                    const newPage = await newTarget.page();
-                    await newPage.setUserAgent(userAgent.toString())
-
-                    newPage.on('error', (error) => {
-                        error('Page error:', error);
-                    });
-
-                    await newPage.waitForTimeout(20000)
-
-                    log('[INFO] Page Iklan 1');
-                    log('[INFO] Skenario Scroll');
-
-                    blackListUrl.forEach(async (url) => {
-                        if (await page.url().includes(url)) {
-                            return;
-                        }
-                    })
-
-                    await scrollFuncAds(newPage, data, log)
-
-                    await newPage.waitForSelector('a[href]', {
-                        waitUntil: ['networkidle2', 'domcontentloaded'],
-                        timeout: 120000
-                    })
-
-                    const urls = await newPage.$$('a[href]')
-                    if (urls) {
-                        const random = Math.floor(Math.random() * (urls.length + 1));
-
-                        try {
-                            const hrefValue = await newPage.evaluate(e => e.getAttribute('href'), urls[random]);
-                            const onClickValue = await newPage.evaluate(e => e.getAttribute('onclick'), urls[random]);
-
-                            if ((hrefValue !== '#' && hrefValue !== null) || onClickValue !== null || hrefValue !== "javascript:void(0);") {
-                                log(`[INFO] Initiate click url href="${hrefValue}"`);
-
-                                if (hrefValue !== '#') {
-                                    await Promise.all([
-                                        await newPage.evaluate((element) => {
-                                            element.removeAttribute('target');
-                                        }, urls[random]),
-                                        urls[random].evaluate(b => b.click())
-                                    ]);
-
-                                    await newPage.waitForTimeout(20000)
-                                }
-                            } else {
-                                log('[INFO] Url not found');
-                                return;
-                            }
-                        } catch (error) {
-                            return;
-                        }
-
-                        log('[INFO] Page Iklan 2');
-                        log('[INFO] Skenario scroll current page');
-                        await scrollFuncAds(newPage, data, log)
-
-                    } else {
-                        log('[INFO] Ads Not Found ❌');
-                    }
-
-                    pages = await browser.pages()
-                    log('[INFO] Intiate Close all page except page 1 & 2');
-                    for (let i = 2; i < pages.length; i++) {
-                        if (i !== 0 && i !== 1) {
-                            await pages[i].close();
-                        }
-                    }
-
-                    page = pages[1]
-                    !data.recentPost ? log('[INFO] Done Visit Ads\n') : log('[INFO] Done Visit Ads');
-                    await page.sleep(10000)
-                } else {
-                    !data.recentPost ? log('[INFO] Ads Not Found ❌\n') : log('[INFO] Ads Not Found ❌');
-                    clearInterval(checkPop)
-                }
-                loops++
-            }
-
-            if (data.recentPost) {
-                const recentPost = await page.$$('#block-3 > div > div > ul > li > a')
-                const randomRecentPost = Math.floor(Math.random() * (recentPost.length - 5))
-                const urlRecent = await page.evaluate((e) => e.getAttribute('href'), recentPost[randomRecentPost])
-
-                log(`\n[INFO] Go To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
-                recentPost.length > 0 && await page.goto(urlRecent, {
-                    waitUntil: ['networkidle2', 'domcontentloaded'],
-                    timeout: 120000
-                })
-
-                log('[INFO] Scroll Recent Post Pages\n');
-                await scrollFuncAds(page, data, log)
-            }
+        if (data.recentPost) {
+            page.sleep(30000)
+            log("[INFO] Klik Recent Posts");
+            const postLinks = await page.$$('#recent-posts-2 ul li a');
+            const randomIndex = Math.floor(Math.random() * postLinks.length);
+            const randomLink = postLinks[randomIndex];
+            await page.sleep(500);
+            randomLink.click(),
+            page.sleep(30000)
+            log('[INFO] Scroll Recent Post Pages\n');
+            await scrollFuncAds(page, data, log)
         }
 
-
+        log('Done');
         await browser.close()
     } catch (error) {
         data.modePopUnder && clearInterval(checkPop)
@@ -507,8 +382,8 @@ async function solveCaptcha(log) {
 
 const scrollFuncAds = async (newPage, data, log) => {
     const startTimes = Date.now();
-    const min = parseInt(data.adsTimes[0]);
-    const max = parseInt(data.adsTimes[1]);
+    const min = parseInt(data.articleTimes[0]);
+    const max = parseInt(data.articleTimes[1]);
     const duration = Math.round(Math.random() * (max - min)) + min;
     const sleepDuration = duration * 60 * 1000;
     const convertMinutes = Math.floor((sleepDuration / 1000 / 60) % 60);

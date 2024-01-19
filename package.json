@@ -1,6 +1,6 @@
 {
-  "name": "bot-adsweb",
-  "productName": "bot-adsweb",
+  "name": "bot-trafficweb",
+  "productName": "bot-trafficweb",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": "src/index.js",
