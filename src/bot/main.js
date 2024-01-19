@@ -7,6 +7,8 @@ const UserAgent = require('user-agents');
 puppeteer.use(stealth());
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
+const zenmate = path.join(process.cwd(), "src/bot/extension/zenmate/");
+const cghost = path.join(process.cwd(), "src/bot/extension/cghost/");
 const timeout = 3000
 let stop = false
 let browser, page, pages, checkPop;
@@ -31,41 +33,41 @@ const mainProccess = async (log, keyword, url, data) => {
         proxyServer = `${ip}:${port}`
     }
 
+    const extensionOption = data.zenmate ? zenmate : data.cghost ? cghost : spoof;
+    const buserOption = data.buster ? captcha : spoof;
+
+    let userAgent;
+    if (data.uDesktop) {
+        userAgent = new UserAgent({
+            deviceCategory: 'desktop'
+        });
+    } else if (data.uMobile) {
+        userAgent = new UserAgent({
+            deviceCategory: 'mobile'
+        });
+    } else if (data.iphone) {
+        userAgent = new UserAgent({
+            platform: 'iPhone'
+        });
+    } else if (data.uRandom) {
+        userAgent = new UserAgent().random();
+    } else {
+        userAgent = new UserAgent().random();
+    }
+
     browser = await puppeteer.launch({
         headless: data.view,
         defaultViewport: null,
         args: [
-            data.buster ? `--disable-extensions-except=${spoof},${captcha}` : `--disable-extensions-except=${spoof}`,
-            data.buster ? `--load-extension=${spoof},${captcha}` : `--load-extension=${spoof}`,
+            `--disable-extensions-except=${spoof},${extensionOption},${buserOption}`,
+            `--load-extension=${spoof},${extensionOption},${buserOption}`,
             "--disable-setuid-sandbox",
             "--no-sandbox",
+            `--user-agent=${userAgent.toString()}`,
             "--mute-audio",
             data.proxy ? `--proxy-server=${proxyServer}` : null
         ].filter(Boolean)
     })
-
-    let deviceCategory = '';
-
-    if (data.uDesktop) {
-        deviceCategory = 'desktop';
-    } else if (data.uMobile) {
-        deviceCategory = 'mobile';
-    } else if (data.uRandom) {
-        deviceCategory = 'random';
-    }
-
-    const userAgent = !data.iphone ?
-        new UserAgent({
-            deviceCategory: deviceCategory
-        }) :
-        new UserAgent({
-            platform: 'iPhone'
-        });
-
-
-    const blackListUrl = [
-        'confirm-action'
-    ]
 
     page = await browser.newPage()
     pages = await browser.pages()
@@ -73,21 +75,6 @@ const mainProccess = async (log, keyword, url, data) => {
     data.buster && page.on('load', async () => {
         await solveCaptcha(log)
     })
-
-    await page.setUserAgent(userAgent.toString())
-
-    if (data.modePopUnder) {
-        checkPop = setInterval(async () => {
-            pages = await browser.pages()
-            if (pages.length > 2) {
-                for (let i = 2; i < pages.length; i++) {
-                    if (i !== 0 && i !== 1) {
-                        await pages[i].close();
-                    }
-                }
-            }
-        }, 2000)
-    }
 
     page.sleep = function (timeout) {
         return new Promise(function (resolve) {
@@ -100,9 +87,10 @@ const mainProccess = async (log, keyword, url, data) => {
             username: `${saveProxy[0]}`,
             password: `${saveProxy[1]}`
         });
-        
-        data.buster && await handleBuster(data)
 
+        data.buster && await handleBuster(data)
+        data.zenmate && await vpnZenMate(data, log)
+        data.cghost && await vpnCghost(data, log)
         data.whoer && await getWhoerData(log)
 
         page.on('dialog', async dialog => {
@@ -112,10 +100,6 @@ const mainProccess = async (log, keyword, url, data) => {
 
 
         if (data.googleMode) {
-            await page.goto('https://www.google.com/', {
-                waitUntil: ['networkidle2', 'domcontentloaded'],
-                timeout: 120000
-            })
             await page.goto('https://www.google.com/', {
                 waitUntil: ['networkidle2', 'domcontentloaded'],
                 timeout: 120000
@@ -136,7 +120,23 @@ const mainProccess = async (log, keyword, url, data) => {
                 }
             }
 
-            await page.type('textarea[name="q"]', keyword);
+            const accept = await page.$('#L2AGLb');
+
+            if (accept) {
+                log("[INFO] Accept Found ✅");
+                const bahasa = await page.$('#vc3jof');
+                await bahasa.click();
+                await page.waitForSelector('li[aria-label="‪English‬"]');
+                await page.click('li[aria-label="‪English‬"]');
+                await page.sleep(5000)
+                const accept = await page.$('#L2AGLb');
+                await accept.click()
+            }
+
+            const search = await page.waitForSelector('textarea[name="q"]', {
+                timeout: 120000
+            })
+            search && await search.type(keyword);
             log(`[INFO] Search: ${keyword}...`);
 
             await Promise.all([
@@ -159,9 +159,9 @@ const mainProccess = async (log, keyword, url, data) => {
 
             const hrefElements = await page.$$('[href]');
             const hrefs = await Promise.all(hrefElements.map(element => element.evaluate(node => node.getAttribute('href'))));
-    
+
             let linkFound = false;
-    
+
             for (const href of hrefs) {
                 if (url.includes(href)) {
                     log("[INFO] Article Found ✅");
@@ -171,6 +171,10 @@ const mainProccess = async (log, keyword, url, data) => {
                         });
                         await element.click();
                         linkFound = true;
+                        await page.waitForNavigation({
+                            waitUntil: ['networkidle2', 'domcontentloaded'],
+                            timeout: 120000
+                        })
                         break;
                     } catch (error) {
                         log(`[ERROR] Error clicking the link: ${error}`);
@@ -178,9 +182,12 @@ const mainProccess = async (log, keyword, url, data) => {
                     }
                 }
             }
-    
+            
+            await scrollFuncAds(page, data, log)
+
             if (!linkFound) {
                 log("[INFO] Article Not Found ❌: " + url);
+                await browser.close()
                 return
             }
 
@@ -189,147 +196,27 @@ const mainProccess = async (log, keyword, url, data) => {
                 waitUntil: ['networkidle2', 'domcontentloaded'],
                 timeout: 120000
             })
+
+            await scrollDownToBottom(page);
         }
 
-        if (data.modePopUnder) {
-            log('[INFO] Scroll Page Utama');
+        if (data.recentPost) {
+            const recentPost = await page.$$('#block-3 > div > div > ul > li > a')
+            const randomRecentPost = Math.floor(Math.random() * (recentPost.length - 5))
+            const urlRecent = await page.evaluate((e) => e.getAttribute('href'), recentPost[randomRecentPost])
 
+            log(`\n[INFO] Go To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
+            recentPost.length > 0 && await page.goto(urlRecent, {
+                waitUntil: ['networkidle2', 'domcontentloaded'],
+                timeout: 120000
+            })
+
+            log('[INFO] Scroll Recent Post Pages\n');
             await scrollFuncAds(page, data, log)
-
-            let loops = 0;
-            while (loops < data.repeat) {
-                log(`\nLoop ${loops}`);
-                const newTargetPromise = new Promise((resolve) => {
-                    browser.once('targetcreated', (target) => {
-                        resolve(target);
-                    });
-                });
-
-                await page.waitForSelector('body', {
-                    waitUntil: ['networkidle2', 'domcontentloaded'],
-                    timeout: 120000
-                })
-
-                log('[INFO] Finding the ads element');
-                const clickAds = await page.$$('body > div')
-                clearInterval(checkPop)
-
-                if (clickAds.length > 0) {
-                    try {
-                        await clickAds[clickAds.length - 1].click();
-                        await page.sleep(20000);
-                        pages = await browser.pages();
-                    } catch (error) {
-                        log('[WARN] Not Clickable:', error);
-                    }
-                } else {
-                    return;
-                }
-
-                await page.waitForTimeout(timeout)
-                if (pages.length > 2) {
-                    log('[INFO] Ads Found ✅');
-                    const newTarget = await newTargetPromise;
-                    const newPage = await newTarget.page();
-                    await newPage.setUserAgent(userAgent.toString())
-
-                    newPage.on('error', (error) => {
-                        error('Page error:', error);
-                    });
-
-                    await newPage.waitForTimeout(20000)
-
-                    log('[INFO] Page Iklan 1');
-                    log('[INFO] Skenario Scroll');
-
-                    blackListUrl.forEach(async (url) => {
-                        if (await page.url().includes(url)) {
-                            return;
-                        }
-                    })
-
-                    await scrollFuncAds(newPage, data, log)
-
-                    await newPage.waitForSelector('a[href]', {
-                        waitUntil: ['networkidle2', 'domcontentloaded'],
-                        timeout: 120000
-                    })
-
-                    const urls = await newPage.$$('a[href]')
-                    if (urls) {
-                        const random = Math.floor(Math.random() * (urls.length + 1));
-
-                        try {
-                            const hrefValue = await newPage.evaluate(e => e.getAttribute('href'), urls[random]);
-                            const onClickValue = await newPage.evaluate(e => e.getAttribute('onclick'), urls[random]);
-
-                            if ((hrefValue !== '#' && hrefValue !== null) || onClickValue !== null || hrefValue !== "javascript:void(0);") {
-                                log(`[INFO] Initiate click url href="${hrefValue}"`);
-
-                                if (hrefValue !== '#') {
-                                    await Promise.all([
-                                        await newPage.evaluate((element) => {
-                                            element.removeAttribute('target');
-                                        }, urls[random]),
-                                        urls[random].evaluate(b => b.click())
-                                    ]);
-
-                                    await newPage.waitForTimeout(20000)
-                                }
-                            } else {
-                                log('[INFO] Url not found');
-                                return;
-                            }
-                        } catch (error) {
-                            return;
-                        }
-
-                        log('[INFO] Page Iklan 2');
-                        log('[INFO] Skenario scroll current page');
-                        await scrollFuncAds(newPage, data, log)
-
-                    } else {
-                        log('[INFO] Ads Not Found ❌');
-                    }
-
-                    pages = await browser.pages()
-                    log('[INFO] Intiate Close all page except page 1 & 2');
-                    for (let i = 2; i < pages.length; i++) {
-                        if (i !== 0 && i !== 1) {
-                            await pages[i].close();
-                        }
-                    }
-
-                    page = pages[1]
-                    !data.recentPost ? log('[INFO] Done Visit Ads\n') : log('[INFO] Done Visit Ads');
-                    await page.sleep(10000)
-                } else {
-                    !data.recentPost ? log('[INFO] Ads Not Found ❌\n') : log('[INFO] Ads Not Found ❌');
-                    clearInterval(checkPop)
-                }
-                loops++
-            }
-
-            if (data.recentPost) {
-                const recentPost = await page.$$('#block-3 > div > div > ul > li > a')
-                const randomRecentPost = Math.floor(Math.random() * (recentPost.length - 5))
-                const urlRecent = await page.evaluate((e) => e.getAttribute('href'), recentPost[randomRecentPost])
-
-                log(`\n[INFO] Go To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
-                recentPost.length > 0 && await page.goto(urlRecent, {
-                    waitUntil: ['networkidle2', 'domcontentloaded'],
-                    timeout: 120000
-                })
-
-                log('[INFO] Scroll Recent Post Pages\n');
-                await scrollFuncAds(page, data, log)
-            }
         }
-
 
         await browser.close()
     } catch (error) {
-        data.modePopUnder && clearInterval(checkPop)
         log('[ERROR] ' + error + "\n")
         await browser.close()
     }
@@ -457,12 +344,189 @@ const handleBuster = async (data) => {
     }
 }
 
+const vpnZenMate = async (data, log) => {
+    try {
+        log("[INFO] Start Zenmate VPN")
+        const pathId = path.join(process.cwd(), 'src/bot/data/idzen.txt');
+        const id = fs.readFileSync(pathId, 'utf-8')
+        if (id === '') {
+            await page.goto('chrome://extensions', {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        } else {
+            await page.goto(`chrome-extension://${id.trim()}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        }
+
+        if (id === '') {
+            const idExtension = await page.evaluateHandle(
+                'document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[0]'
+            );
+            await page.evaluate(e => e.style = "", idExtension)
+
+            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
+
+            await page.goto(`chrome-extension://${id}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 60000
+            })
+
+            fs.writeFileSync(pathId, id)
+        }
+
+        await page.sleep(3000)
+
+        const closeTour = await page.waitForSelector('.close-btn')
+        closeTour && await closeTour.click()
+
+        await page.sleep(3000)
+
+        const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
+        pickCountry && await pickCountry.click()
+
+        await page.sleep(3000)
+
+        const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
+        search && await search.click()
+
+        const searchBox = await page.waitForSelector('input[placeholder="Search"]')
+
+        const region = fs.readFileSync(data.country, 'utf-8').split('\n')
+
+        if (region.length > 1) {
+            await searchBox.click()
+            searchBox && await searchBox.type(region[Math.floor(Math.random() * region.length)])
+        } else {
+            await searchBox.click()
+            searchBox && await searchBox.type(region)
+        }
+
+        const country = await page.waitForSelector('body > app-root > main > app-servers > div > div.pt-4 > div > app-servers-list > div > p > span')
+        country && await country.click()
+
+        await page.sleep(5000)
+        log("[INFO] Ready Zenmate VPN")
+    } catch (error) {
+        throw error;
+    }
+}
+
+const vpnCghost = async (data, log) => {
+    try {
+        // #Beta cookies future.
+        // if (data.cookiesCghost != '') {
+        //     const pathCookies = path.join(process.cwd(), "src/bot/data/ck.json");
+        //     let userCookies = '';
+
+        //     try {
+        //         userCookies = fs.readFileSync(pathCookies, 'utf-8');
+        //     } catch (err) {
+        //         log('[ERROR] Error reading user cookies file:', err);
+        //     }
+
+        //     if (userCookies === '') {
+        //         try {
+        //             const cookiesData = fs.readFileSync(data.cookiesCghost, 'utf-8');
+        //             try {
+        //                 const readyCookies = JSON.parse(cookiesData);
+        //                 fs.writeFileSync(pathCookies, JSON.stringify(readyCookies));
+        //                 await page.setCookie(...readyCookies);
+        //             } catch (err) {
+        //                 log('[ERROR] Error parsing cookies data:', err);
+        //             }
+        //         } catch (err) {
+        //             log('[ERROR] Error reading cookies file:', err);
+        //         }
+        //     } else {
+        //         try {
+        //             const cookies = JSON.parse(userCookies);
+        //             await page.setCookie(...cookies);
+        //         } catch (err) {
+        //             log('[ERROR] Error parsing user cookies:', err);
+        //         }
+        //     }
+        // }
+
+        const pathId = path.join(process.cwd(), 'src/bot/data/idghost.txt');
+        const id = fs.readFileSync(pathId, 'utf-8')
+        if (id === '') {
+            await page.goto('chrome://extensions', {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        } else {
+            await page.goto(`chrome-extension://${id.trim()}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        }
+
+        if (id === '') {
+            const idExtension = await page.evaluateHandle(
+                'document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[1]'
+            );
+            await page.evaluate(e => e.style = "", idExtension)
+
+            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
+
+            await page.goto(`chrome-extension://${id}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 60000
+            })
+
+            fs.writeFileSync(pathId, id)
+        }
+
+        await page.sleep(3000)
+
+        const pickCountry = await page.waitForSelector('.selected-country')
+        pickCountry && await pickCountry.click()
+
+        await page.sleep(3000)
+
+        const regionFiles = fs.readFileSync(data.country, 'utf-8').split('\n')
+        let regionId = []
+
+        regionFiles.forEach((data) => {
+            regionId.push(data)
+        })
+
+        await page.evaluate((regionId) => {
+            let region;
+            if (regionId.length > 1) {
+                region = regionId[Math.floor(Math.random() * regionId.length)]
+            } else {
+                region = regionId.join('')
+            }
+
+            const country = document.querySelectorAll('mat-option > .mat-option-text')
+            country.forEach((e) => {
+                const reg = e.innerText
+                reg.toLowerCase().includes(region) && e.click()
+            })
+        }, regionId)
+
+        await page.sleep(3000)
+
+        await page.evaluate(() => {
+            document.querySelector('body > app-root > main > app-home > div > div.spinner > app-switch > div').click()
+        })
+
+        await page.sleep(5000)
+    } catch (error) {
+        throw error;
+    }
+}
+
 async function solveCaptcha(log) {
     return new Promise(async (resolve, reject) => {
         try {
             const captchaBox = await page.$('[title="reCAPTCHA"]')
             if (captchaBox) {
-                log("Captcha Found Solve....");
+                log("[INFO] Captcha Found Solve....");
                 await captchaBox.click()
                 const elIframe = await page.waitForSelector('iframe[title="recaptcha challenge expires in two minutes"]');
                 if (elIframe) {
@@ -475,7 +539,7 @@ async function solveCaptcha(log) {
                                 try {
                                     await solverButton.click();
                                     await page.sleep(10000);
-                                    log("Solved ✅");
+                                    log("[INFO] Solved ✅");
                                     resolve();
                                 } catch (error) {
                                     log('Error clicking the button:', error.message);
@@ -498,6 +562,7 @@ async function solveCaptcha(log) {
                     reject(new Error('Iframe with title "captcha" not found on the page.'));
                 }
             }
+
         } catch (error) {
             log(error);
             reject(error);
@@ -507,8 +572,8 @@ async function solveCaptcha(log) {
 
 const scrollFuncAds = async (newPage, data, log) => {
     const startTimes = Date.now();
-    const min = parseInt(data.adsTimes[0]);
-    const max = parseInt(data.adsTimes[1]);
+    const min = parseInt(data.articleTimes[0]);
+    const max = parseInt(data.articleTimes[1]);
     const duration = Math.round(Math.random() * (max - min)) + min;
     const sleepDuration = duration * 60 * 1000;
     const convertMinutes = Math.floor((sleepDuration / 1000 / 60) % 60);

@@ -42,107 +42,77 @@
             <label for="files" class="form-label fw-bold">Files Blog</label>
             <input class="form-control" type="file" id="files">
           </div>
-        </div>
 
-        <div class="">
-          <h6 class="fw-semibold">Mode Visit :</h6>
-
-          <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mBanner">
-            <label class="form-check-label" for="mBanner">Banner</label>
-          </div>
-
-          <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mSB">
-            <label class="form-check-label" for="mSB">Social Bar</label>
-          </div>
-
-          <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="mPU" checked>
-            <label class="form-check-label" for="mPU">Pop Under</label>
-          </div>
-          <div class="form-check form-switch">
-            <input class="form-check-input modeVisit" type="checkbox" role="switch" id="directLink">
-            <label class="form-check-label" for="directLink">Direct Link</label>
+          <h6 class="fw-semibold">Scroll Page :</h6>
+          <span class="">Article (min-max)</span>
+          <div class="d-flex gap-3 mb-3">
+            <input type="number" class="form-control articleTimes" id="articleMin" value="2" placeholder="2">
+            <input type="number" class="form-control articleTimes" id="articleMax" value="3" placeholder="2">
           </div>
         </div>
+
       </div>
 
       <div class="w-100 border p-3 rounded">
 
-        <div class="mb-3">
-          <h6 class="fw-semibold">Mode Visit DirectLink :</h6>
+        <h6 class="fw-semibold">Conection Options :</h6>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="proxy">
+          <label class="form-check-label" for="proxy">Proxy</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="ProxySequence">
+          <label class="form-check-label" for="ProxySequence">Proxy Sequence</label>
+        </div>
+        <div class="">
+          <textarea class="form-control" id="proxyField" rows="1" placeholder="user:passwd@ip:port"></textarea>
+        </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="yt">
-            <label class="form-check-label" for="yt">Youtube</label>
-          </div>
+       
 
-          <div class="form-check form-switch">
-            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="twitter">
-            <label class="form-check-label" for="twitter">Twitter</label>
-          </div>
+      </div>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="ig">
-            <label class="form-check-label" for="ig">Instagram</label>
+      <div class="w-100 border p-3 rounded">
+        <h6 class="fw-semibold">Captcha Options :</h6>
+        <div class="d-flex gap-3">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="captcha">
+            <label class="form-check-label" for="captcha">Captcha</label>
           </div>
           <div class="form-check form-switch">
-            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="moz">
-            <label class="form-check-label" for="moz">URL Link Direct(MOZ)</label>
+            <input class="form-check-input" type="checkbox" role="switch" id="buster">
+            <label class="form-check-label" for="buster">Buster</label>
           </div>
-          <div class="form-check form-switch">
-            <input class="form-check-input modeDirect" type="checkbox" role="switch" id="blogDirect">
-            <label class="form-check-label" for="blogDirect">Blog Direct</label>
+        </div>
+
+        <div class="">
+          <textarea class="form-control" id="apikey" rows="1" placeholder="apikey captcha < provider >"></textarea>
+        </div>
+        <div class="">
+          <textarea class="form-control" id="busterkey" rows="1" placeholder="apikey wit.ai"></textarea>
+        </div>
+
+        <h6 class="fw-semibold">VPN :</h6>
+        <div class="d-flex gap-3">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="zenmate">
+            <label class="form-check-label" for="zenmate">ZenMate</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="cghost">
+            <label class="form-check-label" for="cghost">CyberGhost</label>
           </div>
         </div>
 
         <div class="d-flex gap-3">
-          <div class="mb-3">
-            <input type="number" class="form-control" id="countVisitAds" value="2" placeholder="2">
-            <small>repeat visit ads</small>
+          <div class="d-none" id="boxCountry">
+            <label for="country" class="form-label fw-bold">Country files</label>
+            <input class="form-control" type="file" id="country">
           </div>
-          <div class="mb-3">
-            <input type="number" class="form-control" id="loop" value="2" placeholder="2">
-            <small>loop</small>
+          <div class="d-none" id="cookiesBox">
+            <label for="cookiesCghost" class="form-label fw-bold">Cookies</label>
+            <input class="form-control" type="file" id="cookiesCghost">
           </div>
-        </div>
-
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" role="switch" id="recentPost" checked>
-          <label class="form-check-label" for="recentPost">Recent Post</label>
-        </div>
-
-      </div>
-
-      <div class="w-100 border p-3 rounded">
-
-        <div class="form-check form-switch mb-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="captcha">
-          <label class="form-check-label" for="captcha">Captcha</label>
-        </div>
-        <div class="mb-3">
-          <textarea class="form-control" id="apikey" rows="1" placeholder="apikey captcha < provider >"></textarea>
-        </div>
-
-        <h6 class="fw-semibold">Scroll Page :</h6>
-        <span class="">Article (min-max)</span>
-        <div class="d-flex gap-3 mb-3">
-          <input type="number" class="form-control articleTimes" id="articleMin" value="2" placeholder="2">
-          <input type="number" class="form-control articleTimes" id="articleMax" value="3" placeholder="2">
-        </div>
-        <span class="">Ads (min-max)</span>
-        <div class="d-flex gap-3 mb-3">
-          <input type="number" class="form-control adsTimes" id="adsMin" value="2" placeholder="2">
-          <input type="number" class="form-control adsTimes" id="adsMax" value="3" placeholder="2">
-        </div>
-
-        <div class="form-check form-switch mb-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="buster">
-          <label class="form-check-label" for="buster">Buster Solver</label>
-        </div>
-        <div class="">
-          <textarea class="form-control" id="busterkey" rows="1" placeholder="apikey wit.ai"></textarea>
         </div>
 
       </div>
@@ -151,9 +121,15 @@
         <div class="mb-3">
           <h6 class="fw-semibold">Options :</h6>
 
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="visibleMode">
-            <label class="form-check-label" for="visibleMode">Visible</label>
+          <div class="d-flex gap-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="visibleMode">
+              <label class="form-check-label" for="visibleMode">Visible</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="recentPost" checked>
+              <label class="form-check-label" for="recentPost">RecentPost</label>
+            </div>
           </div>
 
           <div class="d-flex gap-3">
@@ -161,7 +137,7 @@
               <input class="form-check-input" type="checkbox" role="switch" id="whoer">
               <label class="form-check-label" for="whoer">Whoer</label>
             </div>
-  
+
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox" role="switch" id="ipsaya">
               <label class="form-check-label" for="ipsaya">IpSaya</label>
@@ -198,26 +174,17 @@
           </div>
 
         </div>
-
-        <h6 class="fw-semibold">Conection Options :</h6>
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" role="switch" id="proxy">
-          <label class="form-check-label" for="proxy">Proxy</label>
-        </div>
-        <div class="form-check form-switch mb-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="ProxySequence">
-          <label class="form-check-label" for="ProxySequence">Proxy Sequence</label>
-        </div>
         <div class="">
-          <textarea class="form-control" id="proxyField" rows="1" placeholder="user:passwd@ip:port"></textarea>
+          <label for="loop" class="form-label fw-bold">Loop :</label>
+          <input type="number" class="form-control" id="loop" value="2" placeholder="2">
         </div>
       </div>
 
     </div>
 
     <div class="d-flex gap-2 align-items-center mb-3">
-      <div class="progress w-100" role="progressbar" aria-label="Animated striped example"
-        aria-valuemin="0" aria-valuemax="100">
+      <div class="progress w-100" role="progressbar" aria-label="Animated striped example" aria-valuemin="0"
+        aria-valuemax="100">
         <div id="progs" class="progress-bar bg-success progress-bar-striped progress-bar-animated">0%</div>
       </div>
       <button type="button" id="start" class="btn btn-success">Start</button>
