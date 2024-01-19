@@ -183,8 +183,8 @@ const server = async (silent = true) => {
         chrome.storage.local.set({
           timezone
         }, () => {
-          uo();
-          // uo().then(({timezone, offset}) => notify('New Timezone: ' + timezone + ' (' + offset + ')'));
+          // uo();
+          uo().then(({timezone, offset}) => notify('New Timezone: ' + timezone + ' (' + offset + ')'));
         });
       }
       else if (silent === false) {

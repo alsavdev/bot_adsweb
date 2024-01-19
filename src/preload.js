@@ -8,9 +8,6 @@ const gMode = document.getElementById('gMode');
 const bMode = document.getElementById('bMode');
 const files = document.getElementById('files');
 const mBanner = document.getElementById('mBanner');
-const mSB = document.getElementById('mSB');
-const mPU = document.getElementById('mPU');
-const countVisitAds = document.getElementById('countVisitAds');
 const loop = document.getElementById('loop');
 const visibleMode = document.getElementById('visibleMode');
 const whoer = document.getElementById('whoer');
@@ -19,8 +16,6 @@ const uMobile = document.getElementById('uMobile');
 const uDesktop = document.getElementById('uDesktop');
 const iphone = document.getElementById('iphone');
 const uRandom = document.getElementById('uRandom');
-const modeVisit = document.querySelectorAll('.modeVisit')
-const modeDirect = document.querySelectorAll('.modeDirect')
 const ua = document.querySelectorAll('.ua')
 const startBtn = document.getElementById('start')
 const stopBtn = document.getElementById('stop')
@@ -31,15 +26,14 @@ const captcha = document.getElementById('captcha')
 const apikey = document.getElementById('apikey')
 const buster = document.getElementById('buster')
 const busterkey = document.getElementById('busterkey')
-const yt = document.getElementById('yt')
-const twitter = document.getElementById('twitter')
-const ig = document.getElementById('ig')
-const moz = document.getElementById('moz')
-const directLink = document.getElementById('directLink')
-const blogDirect = document.getElementById('blogDirect')
+const country = document.getElementById('country')
+const cookiesCghost = document.getElementById('cookiesCghost')
+const boxCountry = document.getElementById('boxCountry')
+const cookiesBox = document.getElementById('cookiesBox')
+const zenmate = document.getElementById('zenmate')
+const cghost = document.getElementById('cghost')
 const recentPost = document.getElementById('recentPost')
 const [articleMin, articleMax] = document.querySelectorAll('.articleTimes')
-const [adsMin, adsMax] = document.querySelectorAll('.adsTimes')
 const log = document.getElementById('log')
 const version = document.getElementById('version')
 const progs = document.getElementById('progs')
@@ -48,13 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector("header").style.webkitAppRegion = 'drag'
     proxyField.disabled = true
-    apikey.disabled = true
-    busterkey.disabled = true
+    apikey.classList.add('d-none')
+    busterkey.classList.add('d-none')
     stopBtn.disabled = true
 
-    const firstMode = [gMode, bMode, mBanner, mSB, mPU, directLink, recentPost]
-    const secondMode = [yt, twitter, ig, moz, blogDirect]
-    const allElement = [...firstMode, ...secondMode, countVisitAds, loop, captcha, apikey, articleMin, articleMax, adsMin, adsMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files, buster, busterkey]
+    const allElement = [loop, captcha, apikey, articleMin, articleMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files, buster, busterkey, country, cookiesCghost, zenmate, cghost, recentPost]
 
     gMode.addEventListener('change', function () {
         if (gMode.checked) {
@@ -66,30 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bMode.checked) {
             gMode.checked = false;
         }
-    });
-
-    modeVisit.forEach(switchItem => {
-        switchItem.addEventListener('change', () => {
-            if (switchItem.checked) {
-                modeVisit.forEach(otherSwitch => {
-                    if (otherSwitch !== switchItem) {
-                        otherSwitch.checked = false;
-                    }
-                });
-            }
-        });
-    });
-
-    modeDirect.forEach(switchItem => {
-        switchItem.addEventListener('change', () => {
-            if (switchItem.checked) {
-                modeDirect.forEach(otherSwitch => {
-                    if (otherSwitch !== switchItem) {
-                        otherSwitch.checked = false;
-                    }
-                });
-            }
-        });
     });
 
     ua.forEach(switchItem => {
@@ -113,19 +81,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (captcha.checked) {
-            apikey.disabled = false
+            apikey.classList.remove('d-none')
         } else {
-            apikey.disabled = true
+            apikey.classList.add('d-none')
             apikey.value = ""
         }
         
         if (buster.checked) {
-            busterkey.disabled = false
+            busterkey.classList.remove('d-none')
         } else {
-            busterkey.disabled = true
+            busterkey.classList.add('d-none')
             busterkey.value = ""
         }
+    })
 
+    captcha.addEventListener('change', () => {
+        if (captcha.checked) {
+            buster.checked = false
+            apikey.classList.add('mb-3')
+        }
+    })
+    buster.addEventListener('change', () => {
+        if (buster.checked) {
+            captcha.checked = false
+            busterkey.classList.add('mb-3')
+        }
+    })
+
+    zenmate.addEventListener('change', () => {
+        if (zenmate.checked) {
+            cghost.checked = false
+            boxCountry.classList.remove('d-none')
+            cookiesBox.classList.add('d-none')
+        } else {
+            boxCountry.classList.add('d-none')
+        }
+    })
+    cghost.addEventListener('change', () => {
+        if (cghost.checked) {
+            zenmate.checked = false
+            cookiesBox.classList.remove('d-none')
+            boxCountry.classList.remove('d-none')
+        } else {
+            cookiesBox.classList.add('d-none')
+            boxCountry.classList.add('d-none')
+        }
     })
     
     gMode.addEventListener('change', () => {
@@ -151,22 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
             googleMode: gMode.checked,
             blogMode: bMode.checked,
             files: files.files[0]?.path,
-            modeBanner: mBanner.checked,
-            modeSocialBar: mSB.checked,
-            modePopUnder: mPU.checked,
-            modeDirectLink: directLink.checked,
-            yt: yt.checked,
-            twitter: twitter.checked,
-            ig: ig.checked,
-            moz: moz.checked,
-            blogDirect: blogDirect.checked,
-            repeat: countVisitAds.value,
             loop: loop.value,
             recentPost: recentPost.checked,
             captcha: captcha.checked,
             apikey: apikey.value,
             articleTimes: [articleMin.value, articleMax.value],
-            adsTimes: [adsMin.value, adsMax.value],
             view: visibleMode.checked ? false : 'new',
             whoer: whoer.checked,
             ipsaya: ipsaya.checked,
@@ -178,34 +167,26 @@ document.addEventListener('DOMContentLoaded', () => {
             uRandom: uRandom.checked,
             iphone: iphone.checked,
             buster: buster.checked,
-            busterKey: busterkey.value
+            busterKey: busterkey.value,
+            zenmate: zenmate.checked,
+            cghost: cghost.checked,
+            country: country.files[0]?.path,
+            cookiesCghost: cookiesCghost.files[0]?.path
         }
 
         let valid;
 
-        let firstModeValidate = false;
-        let secondModeValidate = false;
 
-        firstMode.forEach((modeObject) => {
-            if (modeObject.checked) {
-                firstModeValidate = true;
-            }
-        });
-
-        secondMode.forEach((modeObject) => {
-            if (modeObject.checked) {
-                secondModeValidate = true;
-            }
-        });
-
-        if (!firstModeValidate && !secondModeValidate) {
-            Toast("error", "Visit mode or visit direct link mode must be selected")
-        } else if (files.value === "") {
+        if (files.value === "") {
             Toast("error", "Files can't be null")
         } else if (captcha.checked && apikey.value == "") {
             Toast("question", "Captcha is on but apikey is null")
         } else if (proxy.checked && proxyField.value == "") {
             Toast("question", "Proxy is on but proxyfield is null")
+        } else if (zenmate.checked && country.value === "") {
+            Toast("question", "File Country cant be null")
+        } else if (cghost.checked && country.value === "") {
+            Toast("question", "File Country cant be null")
         } else {
             valid = true
         }
@@ -261,21 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
             proggress(pros);
         }
     });
-
-    secondMode.forEach((e, i) => {
-        firstMode.forEach((j) => {
-            e.addEventListener('change', () => {
-                if (e.checked) {
-                    j.checked = false
-                }
-            })
-            j.addEventListener('change', () => {
-                if (j.checked) {
-                    e.checked = false
-                }
-            })
-        })
-    })
 
     ipcRenderer.send('app_version');
     ipcRenderer.on('app_version', (event, arg) => {
