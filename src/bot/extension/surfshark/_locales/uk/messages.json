@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "Розширення Surfshark VPN"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "Насолоджуйтесь Інтернетом без обмежень і вбезпечуйте свої дії в мережі й особисту інформацію."
+    },
+    "appDescEdge": {
+        "message": "VPN-служба без обмежень, що захищає ваші дії в Інтернеті. Розблоковує веб-сайти й приховує вашу IP-адресу."
+    },
+    "connected": {
+        "message": "Розширення Surfshark VPN. Підключено до"
+    },
+    "disconnected": {
+        "message": "Розширення Surfshark VPN. Не підключено"
+    },
+    "bypassAddDomain": {
+        "message": "Додати до списку обходу й перезавантажити"
+    },
+    "bypassRemoveDomain": {
+        "message": "Видалити зі списку обходу й перезавантажити"
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "Surfshark VPN -laajennus"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "Nauti rajattomasta internet-sisällöstä samalla suojaten verkkotoimintasi ja henkilötietosi!"
+    },
+    "appDescEdge": {
+        "message": "Rajaton VPN-palvelu verkkotoimintasi suojaamiseksi. Avaa estetyt verkkosivustot ja piilota IP-osoitteesi."
+    },
+    "connected": {
+        "message": "Surfshark VPN -laajennus. Yhdistetty"
+    },
+    "disconnected": {
+        "message": "Surfshark VPN -laajennus. Ei yhdistetty"
+    },
+    "bypassAddDomain": {
+        "message": "Lisää ohituslistaan ja lataa uudelleen"
+    },
+    "bypassRemoveDomain": {
+        "message": "Poista ohituslistalta ja lataa uudelleen"
+    }
+}

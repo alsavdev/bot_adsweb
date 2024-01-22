@@ -9,6 +9,7 @@ const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
 const zenmate = path.join(process.cwd(), "src/bot/extension/zenmate/");
 const cghost = path.join(process.cwd(), "src/bot/extension/cghost/");
+const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
 let stop = false
 let browser, page, pages, checkPop;
@@ -33,7 +34,7 @@ const mainProccess = async (log, keyword, url, data) => {
         proxyServer = `${ip}:${port}`
     }
 
-    const extensionOption = data.zenmate ? zenmate : data.cghost ? cghost : spoof;
+    const extensionOption = data.zenmate ? zenmate : data.cghost ? cghost : data.surf ? surfshark : spoof;
     const buserOption = data.buster ? captcha : spoof;
 
     let userAgent;
@@ -91,13 +92,13 @@ const mainProccess = async (log, keyword, url, data) => {
         data.buster && await handleBuster(data)
         data.zenmate && await vpnZenMate(data, log)
         data.cghost && await vpnCghost(data, log)
+        data.surf && await vpnSurfShark(data, log)
         data.whoer && await getWhoerData(log)
 
         page.on('dialog', async dialog => {
             log(dialog.message())
             await dialog.dismiss();
         })
-
 
         if (data.googleMode) {
             await page.goto('https://www.google.com/', {
@@ -120,32 +121,37 @@ const mainProccess = async (log, keyword, url, data) => {
                 }
             }
 
-            const accept = await page.$('#L2AGLb');
-
-            if (accept) {
-                log("[INFO] Accept Found ✅");
-                const bahasa = await page.$('#vc3jof');
-                await bahasa.click();
-                await page.waitForSelector('li[aria-label="‪English‬"]');
-                await page.click('li[aria-label="‪English‬"]');
-                await page.sleep(5000)
-                const accept = await page.$('#L2AGLb');
-                await accept.click()
-            }
-
+            
             const search = await page.waitForSelector('textarea[name="q"]', {
                 timeout: 120000
             })
-            search && await search.type(keyword);
-            log(`[INFO] Search: ${keyword}...`);
 
-            await Promise.all([
-                page.keyboard.press("Enter"),
-                data.blogMode ? page.waitForNavigation({
-                    waitUntil: 'networkidle2',
-                    timeout: 120000
-                }) : await page.sleep(10000)
-            ]);
+            
+            if (search) {
+                await page.sleep(3000)
+                const accept = await page.$('#L2AGLb');
+                if (accept) {
+                    log("Accept Found ✅");
+                    const bahasa = await page.$('#vc3jof');
+                    await bahasa.click();
+                    await page.waitForSelector('li[aria-label="‪English‬"]');
+                    await page.click('li[aria-label="‪English‬"]');
+                    await page.sleep(5000)
+                    const accept = await page.$('#L2AGLb');
+                    await accept.click()
+                }
+    
+                search && await search.type(keyword);
+                log(`[INFO] Search: ${keyword}...`);
+                
+                await Promise.all([
+                    page.keyboard.press("Enter"),
+                    data.blogMode ? page.waitForNavigation({
+                        waitUntil: 'networkidle2',
+                        timeout: 120000
+                    }) : await page.sleep(10000)
+                ]);
+            }
 
             if (data.captcha) {
                 const recaptchaResponse = await page.solveRecaptchas();
@@ -171,10 +177,13 @@ const mainProccess = async (log, keyword, url, data) => {
                         });
                         await element.click();
                         linkFound = true;
-                        await page.waitForNavigation({
-                            waitUntil: ['networkidle2', 'domcontentloaded'],
-                            timeout: 120000
-                        })
+                        
+                        await page.sleep(3000)
+                        await page.waitForSelector('body')
+                        // await page.waitForNavigation({
+                        //     waitUntil: ['networkidle2', 'domcontentloaded'],
+                        //     timeout: 120000
+                        // })
                         break;
                     } catch (error) {
                         log(`[ERROR] Error clicking the link: ${error}`);
@@ -182,7 +191,7 @@ const mainProccess = async (log, keyword, url, data) => {
                     }
                 }
             }
-            
+
             await scrollFuncAds(page, data, log)
 
             if (!linkFound) {
@@ -201,20 +210,19 @@ const mainProccess = async (log, keyword, url, data) => {
         }
 
         if (data.recentPost) {
-            const recentPost = await page.$$('#block-3 > div > div > ul > li > a')
-            const randomRecentPost = Math.floor(Math.random() * (recentPost.length - 5))
-            const urlRecent = await page.evaluate((e) => e.getAttribute('href'), recentPost[randomRecentPost])
-
-            log(`\n[INFO] Go To Recent Post Page ${urlRecent} No ${randomRecentPost}`);
-            recentPost.length > 0 && await page.goto(urlRecent, {
-                waitUntil: ['networkidle2', 'domcontentloaded'],
-                timeout: 120000
-            })
-
-            log('[INFO] Scroll Recent Post Pages\n');
+            await page.sleep(30000)
+            log("[INFO] Klik Recent Posts");
+            const postLinks = await page.$$('#recent-posts-2 ul li a');
+            const randomIndex = Math.floor(Math.random() * postLinks.length);
+            const randomLink = postLinks[randomIndex];
+            await page.sleep(500);
+            randomLink.click(),
+            await page.sleep(30000)
+            log('[INFO] Scroll Recent Post Pages');
             await scrollFuncAds(page, data, log)
         }
 
+        log('[INFO] Done\n')
         await browser.close()
     } catch (error) {
         log('[ERROR] ' + error + "\n")
@@ -363,7 +371,7 @@ const vpnZenMate = async (data, log) => {
 
         if (id === '') {
             const idExtension = await page.evaluateHandle(
-                'document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[0]'
+                `document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[${data.buster ? 1 : 0}]`
             );
             await page.evaluate(e => e.style = "", idExtension)
 
@@ -389,23 +397,36 @@ const vpnZenMate = async (data, log) => {
 
         await page.sleep(3000)
 
-        const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
-        search && await search.click()
+        const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== ""); avaliable = region[Math.floor(Math.random() * region.length)]
+        console.log(avaliable);
+        const choice = await page.waitForSelector(`#country-browsing-${avaliable}`)
 
-        const searchBox = await page.waitForSelector('input[placeholder="Search"]')
+        choice && await choice.click()
 
-        const region = fs.readFileSync(data.country, 'utf-8').split('\n')
+        // const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
+        // search && await search.click()
+        
+        // const searchBox = await page.waitForSelector('input[placeholder="Search"]')
+        
+        
+        // searchBox && await searchBox.click({clickCount : 2})
+        // searchBox && await searchBox.type(region[Math.floor(Math.random() * region.length)])
+        
+        // if ((await page.$('body > app-root > main > app-servers > div > div.alert.alert-danger.text-center.mt-2'))) {
+        //     const back = await page.$('body > app-root > main > app-servers > div > div:nth-child(2) > span')
+        //     await back.click()
+            
+        //     const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
+        //     pickCountry && await pickCountry.click()
+    
+        //     await page.sleep(3000)
+    
+        //     const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
+        //     search && await search.click()
+        // }
 
-        if (region.length > 1) {
-            await searchBox.click()
-            searchBox && await searchBox.type(region[Math.floor(Math.random() * region.length)])
-        } else {
-            await searchBox.click()
-            searchBox && await searchBox.type(region)
-        }
-
-        const country = await page.waitForSelector('body > app-root > main > app-servers > div > div.pt-4 > div > app-servers-list > div > p > span')
-        country && await country.click()
+        // const country = await page.waitForSelector('body > app-root > main > app-servers > div > div.pt-4 > div > app-servers-list > div > p > span')
+        // country && await country.click()
 
         await page.sleep(5000)
         log("[INFO] Ready Zenmate VPN")
@@ -429,7 +450,7 @@ const vpnCghost = async (data, log) => {
 
         //     if (userCookies === '') {
         //         try {
-        //             const cookiesData = fs.readFileSync(data.cookiesCghost, 'utf-8');
+        //             const cookiesData = fs.readFileSync(data.vpnCookies, 'utf-8');
         //             try {
         //                 const readyCookies = JSON.parse(cookiesData);
         //                 fs.writeFileSync(pathCookies, JSON.stringify(readyCookies));
@@ -466,7 +487,7 @@ const vpnCghost = async (data, log) => {
 
         if (id === '') {
             const idExtension = await page.evaluateHandle(
-                'document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[1]'
+                `document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[${data.buster ? 2 : 1}]`
             );
             await page.evaluate(e => e.style = "", idExtension)
 
@@ -537,10 +558,22 @@ async function solveCaptcha(log) {
                             const solverButton = await body.waitForSelector('#solver-button');
                             if (solverButton) {
                                 try {
-                                    await solverButton.click();
-                                    await page.sleep(10000);
-                                    log("[INFO] Solved ✅");
-                                    resolve();
+                                    await page.sleep(3000)
+                                    solverButton && await solverButton.click();
+                                    await page.sleep(3000)
+
+                                    // if (solverButton && await page.url().includes('sorry/index')) {
+                                    //     reject("error")
+                                    // }
+                                    await page.waitForNavigation({
+                                        waitUntil: ['networkidle2', 'domcontentloaded'],
+                                        timeout: 120000
+                                    })
+                                    
+                                    if (!solverButton && !(await page.url().includes('sorry/index'))) {
+                                        log("[INFO] Solved ✅");
+                                        resolve();
+                                    }
                                 } catch (error) {
                                     log('Error clicking the button:', error.message);
                                     reject(error);
@@ -568,6 +601,135 @@ async function solveCaptcha(log) {
             reject(error);
         }
     });
+}
+
+const vpnSurfShark = async (data, log) => {
+    try {
+        const pathCookies = path.join(process.cwd(), "src/bot/data/scookies.json");
+        let userCookies = '';
+
+        try {
+            userCookies = fs.readFileSync(pathCookies, 'utf-8');
+        } catch (err) {
+            log('[ERROR] Error reading user cookies file:', err);
+        }
+
+        const pathId = path.join(process.cwd(), 'src/bot/data/idsurf.txt');
+
+        if (userCookies === '') {
+            try {
+                const cookiesData = fs.readFileSync(data.vpnCookies, 'utf-8');
+                try {
+                    const readyCookies = JSON.parse(cookiesData);
+                    fs.writeFileSync(pathCookies, JSON.stringify(readyCookies));
+                    await page.setCookie(...readyCookies);
+                } catch (err) {
+                    log('[ERROR] Error parsing cookies data:', err);
+                }
+            } catch (err) {
+                log('[ERROR] Error reading cookies file:', err);
+            }
+        } else {
+            try {
+                const cookies = JSON.parse(userCookies);
+                await page.setCookie(...cookies);
+            } catch (err) {
+                log('[ERROR] Error parsing user cookies:', err);
+            }
+        }
+
+
+        await page.goto('https://my.surfshark.com/', {
+            waitUntil: ['domcontentloaded', "networkidle2"],
+            timeout: 120000
+        })
+
+        const id = fs.readFileSync(pathId, 'utf-8')
+        if (id === '') {
+            await page.goto('chrome://extensions', {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        } else {
+            await page.goto(`chrome-extension://${id.trim()}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        }
+
+        await page.sleep(timeout)
+
+        const pages = await browser.pages()
+        const urlFirstPage = await pages[1].url()
+        const urlSecondPage = await pages[2].url()
+
+        if (urlSecondPage.includes('https://surfshark.com/download/chrome/onboarding')) {
+            await pages[2].close()
+        } else if (urlFirstPage.includes('https://surfshark.com/download/chrome/onboarding')) {
+            await pages[1].close()
+        }
+
+        await page.sleep(timeout)
+
+        if (id === '') {
+            const idExtension = await page.evaluateHandle(
+                `document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[${data.buster ? 2 : 1}]`
+            );
+            await page.evaluate(e => e.style = "", idExtension)
+
+            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
+            await page.goto(`chrome-extension://${id}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 60000
+            })
+
+            fs.writeFileSync(pathId, id)
+        }
+
+        const lgnWCode = await page.$('[data-test="login-in-button"]')
+        lgnWCode && await lgnWCode.click()
+        await page.waitForSelector('[data-test="cw-vpn-status"]')
+        const enter = await page.$('[data-test="cw-vpn-status"]')
+        if (enter) {
+            log("[INFO] SUCCESS LOGIN VPN");
+        } else {
+            log("[INFO] FAILED LOGIN VPN");
+            await browser.close()
+        }
+
+        try {
+            await page.waitForSelector('[data-test="vpn-menu-item"]')
+        } catch (error) {
+            await browser.close()
+        }
+        const sidebarVpn = await page.$('[data-test="vpn-menu-item"]')
+        await sidebarVpn.click()
+        await page.sleep(5000)
+
+        const country = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line.trim() !== '');
+
+        const search = await page.$('.sxes0')
+        const getRandomCountry = (countries) => {
+            const randomIndex = Math.floor(Math.random() * countries.length);
+            return countries[randomIndex].trim();
+        };
+        const randomSelectedCountry = getRandomCountry(country);
+        log(`[INFO] USE VPN FROM ${randomSelectedCountry}`);
+        await search.type(randomSelectedCountry);
+
+        await page.waitForSelector('[data-test="location-item"]')
+        const choice = await page.$$('#root > div > div.PZaNK.fade-enter-done > div:nth-child(1) > div > div.myRzT.EfvqH > div > div:nth-child(1) > div > div.locationGroup__body > div')
+
+        if (choice.length > 0) {
+            const randomChoice = Math.floor(Math.random() * choice.length)
+            await choice[randomChoice].click()
+        }
+
+        await page.sleep(10000)
+    } catch (error) {
+        log(`[ERROR] ${error}`)
+        await browser.close()
+    }
 }
 
 const scrollFuncAds = async (newPage, data, log) => {
@@ -645,7 +807,7 @@ const workFlow = async (log, progress, data) => {
                 }
 
                 if (stop) {
-                    log("[INFO] Stop Success");
+                    // log("[INFO] Stop Success");
                     await browser.close();
                     break;
                 }

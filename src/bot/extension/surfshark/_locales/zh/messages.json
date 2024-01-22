@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "Surfshark VPN 扩展程序"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "确保您在线活动和个人信息的安全。保护您的隐私，尽享不受限制的互联网服务。"
+    },
+    "appDescEdge": {
+        "message": "不受限制的 VPN 服务，保护您的在线活动。解除网站封锁并隐藏您的 IP。"
+    },
+    "connected": {
+        "message": "Surfshark VPN 扩展程序。已连接"
+    },
+    "disconnected": {
+        "message": "Surfshark VPN 扩展程序。未连接"
+    },
+    "bypassAddDomain": {
+        "message": "添加到“绕过”列表并重新加载"
+    },
+    "bypassRemoveDomain": {
+        "message": "从“绕过”列表中删除并重新加载"
+    }
+}

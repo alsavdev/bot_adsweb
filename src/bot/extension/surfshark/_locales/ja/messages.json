@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "Surfark VPN拡張機能"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "オンライン アクティビティと個人情報を安全に守りつつ、制約なしでインターネットを楽しむことができます！"
+    },
+    "appDescEdge": {
+        "message": "オンラインアクティビティを保護する無制限のVPNサービスです。Webサイトのブロックを解除し、IPを隠します。"
+    },
+    "connected": {
+        "message": "Surfshark VPN Extension。に接続します"
+    },
+    "disconnected": {
+        "message": "Surfshark VPN Extension。に未接続"
+    },
+    "bypassAddDomain": {
+        "message": "バイパスリストに追加し、 再読み込みする"
+    },
+    "bypassRemoveDomain": {
+        "message": "バイパスリストに追加し、 再読み込みする"
+    }
+}
