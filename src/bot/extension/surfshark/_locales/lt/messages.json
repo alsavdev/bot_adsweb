@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "„Surfshark VPN“ plėtinys"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "Naršykite internete be jokių apribojimų apsaugodami savo privatumą ir asmeninę informaciją!"
+    },
+    "appDescEdge": {
+        "message": "Neribota VPN paslauga jūsų veiklai internete apsaugoti. Pasiekite visą norimą turinį išlaikydami savo IP paslaptyje."
+    },
+    "connected": {
+        "message": "„Surfshark VPN“ plėtinys. Prisijungta prie"
+    },
+    "disconnected": {
+        "message": "„Surfshark VPN“ plėtinys. Neprisijungta"
+    },
+    "bypassAddDomain": {
+        "message": "Pridėti į apėjimo sąrašą ir įkelti iš naujo"
+    },
+    "bypassRemoveDomain": {
+        "message": "Pašalinti iš apėjimo sąrašo ir įkelti iš naujo"
+    }
+}

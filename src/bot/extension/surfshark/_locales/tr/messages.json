@@ -1,0 +1,26 @@
+{
+    "appName": {
+        "message": "Surfshark VPN Uzantısı"
+    },
+    "appNameEdge": {
+        "message": "Surfshark VPN"
+    },
+    "appDesc": {
+        "message": "Çevrim içi etkinliğinizi ve kişisel bilgilerinizi güvende tutarak kısıtlama olmadan internetin tadını çıkarın."
+    },
+    "appDescEdge": {
+        "message": "Çevrim içi etkinliğinizi korumak için sınırsız VPN hizmeti. İnternet sitelerinin engelini kaldırın ve IP adresinizi gizleyin."
+    },
+    "connected": {
+        "message": "Surfshark VPN Eklentisi. Şuna bağlanıldı:"
+    },
+    "disconnected": {
+        "message": "Surfshark VPN Eklentisi. Bağlı değil"
+    },
+    "bypassAddDomain": {
+        "message": "Es geçilecekler listesine ekle & yeniden yükle"
+    },
+    "bypassRemoveDomain": {
+        "message": "Es geçilecekler listesinden çıkar & yeniden yükle"
+    }
+}
