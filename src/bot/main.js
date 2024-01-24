@@ -136,13 +136,19 @@ const mainProccess = async (log, keyword, url, data) => {
                     await bahasa.click();
                     await page.waitForSelector('li[aria-label="‪English‬"]');
                     await page.click('li[aria-label="‪English‬"]');
-                    await page.sleep(5000)
-                    const accept = await page.$('#L2AGLb');
-                    await accept.click()
+                    log('tes dsdsd')
+                    await page.sleep(6000)
+                    const aklans = await page.$('#L2AGLb');
+                    await aklans.click()
                 }
-    
-                search && await search.type(keyword);
-                log(`[INFO] Search: ${keyword}...`);
+                await page.sleep(6000)
+                // search && await search.type(keyword);
+                // log(`[INFO] Search: ${keyword}...`);
+
+                const adsdd = await page.$('[name="q"]')
+                await adsdd.type(keyword, {
+                    delay: 60
+                })
                 
                 await Promise.all([
                     page.keyboard.press("Enter"),
