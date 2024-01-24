@@ -7,7 +7,6 @@ const {
 const gMode = document.getElementById('gMode');
 const bMode = document.getElementById('bMode');
 const files = document.getElementById('files');
-const mBanner = document.getElementById('mBanner');
 const loop = document.getElementById('loop');
 const visibleMode = document.getElementById('visibleMode');
 const whoer = document.getElementById('whoer');
@@ -38,6 +37,10 @@ const [articleMin, articleMax] = document.querySelectorAll('.articleTimes')
 const log = document.getElementById('log')
 const version = document.getElementById('version')
 const progs = document.getElementById('progs')
+const warp = document.getElementById('warp');
+const message = document.getElementById('message');
+const restartButton = document.getElementById('restart-button');
+const loaderDownload = document.getElementById('warp-loader')
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -87,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             apikey.classList.add('d-none')
             apikey.value = ""
         }
-        
+
         if (buster.checked) {
             busterkey.classList.remove('d-none')
         } else {
@@ -119,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             boxCountry.classList.add('d-none')
         }
     })
-    
+
     surf.addEventListener('change', () => {
         if (surf.checked) {
             zenmate.checked = false
@@ -131,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             boxCountry.classList.add('d-none')
         }
     })
-    
+
     cghost.addEventListener('change', () => {
         if (cghost.checked) {
             zenmate.checked = false
@@ -143,24 +146,24 @@ document.addEventListener('DOMContentLoaded', () => {
             boxCountry.classList.add('d-none')
         }
     })
-    
+
     gMode.addEventListener('change', () => {
         if (gMode.checked) {
             Swal.fire({
-                icon : "info",
+                icon: "info",
                 title: "Information !",
-                text : "Remember google mode need captcha service !"
+                text: "Remember google mode need captcha service !"
             })
         }
     })
 
-    function Toast(model,msg) {
+    function Toast(model, msg) {
         Swal.fire({
             icon: model,
             title: model === "error" ? "Oops..." : "Is there something wrong ?",
             text: msg,
         });
-    } 
+    }
 
     function extractData() {
         const data = {
@@ -264,4 +267,31 @@ document.addEventListener('DOMContentLoaded', () => {
     ipcRenderer.on('app_version', (event, arg) => {
         version.innerText = 'v' + arg.version;
     });
+
+    ipcRenderer.on('update_available', () => {
+        ipcRenderer.removeAllListeners('update_available');
+        message.innerText = 'A new update is available. Downloading now...';
+        warp.classList.remove('hidden');
+        loaderDownload.classList.remove('hidden');
+    });
+
+    ipcRenderer.on('update_progress', (event, progress) => {
+        updateProgress = progress;
+        const progsDown = document.getElementById('download-progress')
+        progsDown.style.width = updateProgress + '%'
+        progsDown.setAttribute('aria-valuenow', updateProgress)
+    });
+
+    ipcRenderer.on('update_downloaded', () => {
+        ipcRenderer.removeAllListeners('update_downloaded');
+        message.innerText = 'Update Downloaded. It will be installed on restart. Restart now?';
+        restartButton.classList.remove('d-none');
+        warp.classList.remove('hidden');
+
+        loaderDownload.classList.add('hidden');
+    });
+
+    restartButton.addEventListener("click", (e) => {
+        ipcRenderer.send('restart_app');
+    })
 })
