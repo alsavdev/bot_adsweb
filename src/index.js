@@ -79,10 +79,14 @@ ipcMain.on("main-proccess", async (event, data) => {
     event.sender.send('proggress', prog);
   };
 
+  const countStatusView = (status = false, count = 0) => {
+    event.sender.send('status', status, count);
+  };
+
   try {
     log("[INFO] Starting Proccess \n");
     event.sender.send("run");
-    await workFlow(log, proggress, data);
+    await workFlow(log, proggress, countStatusView, data);
     log("\n[INFO] Proccess Done ");
     event.sender.send("force");
   } catch (error) {
