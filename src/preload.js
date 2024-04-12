@@ -41,6 +41,7 @@ const warp = document.getElementById('warp');
 const message = document.getElementById('message');
 const restartButton = document.getElementById('restart-button');
 const loaderDownload = document.getElementById('warp-loader')
+const [success, failed] = document.querySelectorAll('.status-view')
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -222,6 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', extractData)
 
     ipcRenderer.on('run', () => {
+        success.innerText = 0
+        failed.innerText = 0
         allElement.forEach(e => {
             e.disabled = true
             startBtn.disabled = true
@@ -262,6 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
             proggress(pros);
         }
     });
+
+    ipcRenderer.on('status', (event, status, count) => {
+        status ? success.innerText = count : failed.innerText = count
+    })
 
     ipcRenderer.send('app_version');
     ipcRenderer.on('app_version', (event, arg) => {

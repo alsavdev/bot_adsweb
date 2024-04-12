@@ -13,8 +13,10 @@ const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
 let stop = false
 let browser, page, pages, checkPop;
+let countSuccess = 0;
+let countFailed = 0
 
-const mainProccess = async (log, keyword, url, data) => {
+const mainProccess = async (log, countStatusView, keyword, url, data) => {
     let saveProxy, proxyServer;
 
     data.captcha && puppeteer.use(
@@ -136,14 +138,11 @@ const mainProccess = async (log, keyword, url, data) => {
                     await bahasa.click();
                     await page.waitForSelector('li[aria-label="‪English‬"]');
                     await page.click('li[aria-label="‪English‬"]');
-                    log('tes dsdsd')
                     await page.sleep(6000)
                     const aklans = await page.$('#L2AGLb');
                     await aklans.click()
                 }
                 await page.sleep(6000)
-                // search && await search.type(keyword);
-                // log(`[INFO] Search: ${keyword}...`);
 
                 const adsdd = await page.$('[name="q"]')
                 await adsdd.type(keyword, {
@@ -186,10 +185,9 @@ const mainProccess = async (log, keyword, url, data) => {
                         
                         await page.sleep(3000)
                         await page.waitForSelector('body')
-                        // await page.waitForNavigation({
-                        //     waitUntil: ['networkidle2', 'domcontentloaded'],
-                        //     timeout: 120000
-                        // })
+
+                        countSuccess++
+                        countStatusView(true, countSuccess)
                         break;
                     } catch (error) {
                         log(`[ERROR] Error clicking the link: ${error}`);
@@ -197,10 +195,12 @@ const mainProccess = async (log, keyword, url, data) => {
                     }
                 }
             }
-
+            
             await scrollFuncAds(page, data, log)
-
+            
             if (!linkFound) {
+                countFailed++
+                countStatusView(false, countFailed)
                 log("[INFO] Article Not Found ❌: " + url);
                 await browser.close()
                 return
@@ -776,7 +776,7 @@ async function scrollDownToBottom(page) {
     }
 }
 
-const workFlow = async (log, progress, data) => {
+const workFlow = async (log, progress, countStatusView, data) => {
     try {
         let loopCount = 0;
         const files = fs.readFileSync(data.files, 'utf-8').split('\n').filter(line => line.trim() !== "");
@@ -804,7 +804,7 @@ const workFlow = async (log, progress, data) => {
                 }
 
                 try {
-                    await mainProccess(log, result.keyword, result.url, data);
+                    await mainProccess(log, countStatusView, result.keyword, result.url, data);
                     currentIteration++;
                     const progressPercentage = parseInt((currentIteration / totalIterations) * 100);
                     progress(progressPercentage);

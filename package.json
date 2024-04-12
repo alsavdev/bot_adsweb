@@ -6,10 +6,10 @@
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
+    "dev" : "electron .",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "dev": "npx tailwindcss -i ./src/index.css -o ./src/assets/output.css --watch",
     "lint": "echo \"No linting configured\"",
     "build": "npx electron-builder build",
     "deploy": "electron-builder -p always"
