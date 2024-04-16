@@ -4,6 +4,7 @@ const fs = require('fs');
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
 const stealth = require("puppeteer-extra-plugin-stealth");
 const UserAgent = require('user-agents');
+const { executablePath } = require('puppeteer');
 puppeteer.use(stealth());
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
@@ -61,6 +62,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
     browser = await puppeteer.launch({
         headless: data.view,
         defaultViewport: null,
+        executablePath: executablePath(),
         args: [
             `--disable-extensions-except=${spoof},${extensionOption},${buserOption}`,
             `--load-extension=${spoof},${extensionOption},${buserOption}`,
@@ -123,12 +125,12 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                 }
             }
 
-            
+
             const search = await page.waitForSelector('textarea[name="q"]', {
                 timeout: 120000
             })
 
-            
+
             if (search) {
                 await page.sleep(3000)
                 const accept = await page.$('#L2AGLb');
@@ -148,7 +150,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                 await adsdd.type(keyword, {
                     delay: 60
                 })
-                
+
                 await Promise.all([
                     page.keyboard.press("Enter"),
                     data.blogMode ? page.waitForNavigation({
@@ -182,12 +184,15 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                         });
                         await element.click();
                         linkFound = true;
-                        
+
                         await page.sleep(3000)
                         await page.waitForSelector('body')
 
+                        await scrollFuncAds(page, data, log)
+
                         countSuccess++
                         countStatusView(true, countSuccess)
+
                         break;
                     } catch (error) {
                         log(`[ERROR] Error clicking the link: ${error}`);
@@ -195,9 +200,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                     }
                 }
             }
-            
-            await scrollFuncAds(page, data, log)
-            
+
             if (!linkFound) {
                 countFailed++
                 countStatusView(false, countFailed)
@@ -223,7 +226,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
             const randomLink = postLinks[randomIndex];
             await page.sleep(500);
             randomLink.click(),
-            await page.sleep(30000)
+                await page.sleep(30000)
             log('[INFO] Scroll Recent Post Pages');
             await scrollFuncAds(page, data, log)
         }
@@ -403,7 +406,8 @@ const vpnZenMate = async (data, log) => {
 
         await page.sleep(3000)
 
-        const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== ""); avaliable = region[Math.floor(Math.random() * region.length)]
+        const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== "");
+        avaliable = region[Math.floor(Math.random() * region.length)]
         console.log(avaliable);
         const choice = await page.waitForSelector(`#country-browsing-${avaliable}`)
 
@@ -411,22 +415,22 @@ const vpnZenMate = async (data, log) => {
 
         // const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
         // search && await search.click()
-        
+
         // const searchBox = await page.waitForSelector('input[placeholder="Search"]')
-        
-        
+
+
         // searchBox && await searchBox.click({clickCount : 2})
         // searchBox && await searchBox.type(region[Math.floor(Math.random() * region.length)])
-        
+
         // if ((await page.$('body > app-root > main > app-servers > div > div.alert.alert-danger.text-center.mt-2'))) {
         //     const back = await page.$('body > app-root > main > app-servers > div > div:nth-child(2) > span')
         //     await back.click()
-            
+
         //     const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
         //     pickCountry && await pickCountry.click()
-    
+
         //     await page.sleep(3000)
-    
+
         //     const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
         //     search && await search.click()
         // }
@@ -575,7 +579,7 @@ async function solveCaptcha(log) {
                                         waitUntil: ['networkidle2', 'domcontentloaded'],
                                         timeout: 120000
                                     })
-                                    
+
                                     if (!solverButton && !(await page.url().includes('sorry/index'))) {
                                         log("[INFO] Solved ✅");
                                         resolve();
