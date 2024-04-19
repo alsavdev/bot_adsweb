@@ -827,18 +827,15 @@ const workFlow = async (log, progress, countStatusView, data) => {
                 }
 
                 if (stop) {
-                    // log("[INFO] Stop Success");
+                    log("[INFO] Stop Success");
                     await browser.close();
-                    break;
+                    countSuccess = 0;
+                    countFailed = 0;
+                    stop = false;
+                    return;
                 }
 
                 i++;
-            }
-
-            if (stop) {
-                log("[INFO] Stop Success");
-                await browser.close();
-                break;
             }
             loopCount++;
         }
