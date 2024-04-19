@@ -6,12 +6,14 @@ const stealth = require("puppeteer-extra-plugin-stealth");
 const UserAgent = require('user-agents');
 const { executablePath } = require('puppeteer');
 puppeteer.use(stealth());
+
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
 const zenmate = path.join(process.cwd(), "src/bot/extension/zenmate/");
 const cghost = path.join(process.cwd(), "src/bot/extension/cghost/");
 const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
+
 let stop = false
 let browser, page, pages, checkPop;
 let countSuccess = 0;
@@ -73,6 +75,9 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
             data.proxy ? `--proxy-server=${proxyServer}` : null
         ].filter(Boolean)
     })
+
+    const context = browser.defaultBrowserContext();
+    context.overridePermissions('https://www.google.com/', ["geolocation", "notifications"]);
 
     page = await browser.newPage()
     pages = await browser.pages()
@@ -168,6 +173,11 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                 }
             }
 
+            const locator = await page.$$('g-raised-button');
+            if (locator.length >= 2) {
+                await locator[1].click();
+            }
+
             await scrollDownToBottom(page);
 
             const hrefElements = await page.$$('[href]');
@@ -182,7 +192,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                         const element = await page.waitForXPath(`//a[@href="${href}"]`, {
                             timeout: 10000
                         });
-                        await element.click();
+                        await element.click({ delay: 1000});
                         linkFound = true;
 
                         await page.sleep(3000)
@@ -408,7 +418,7 @@ const vpnZenMate = async (data, log) => {
 
         const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== "");
         avaliable = region[Math.floor(Math.random() * region.length)]
-        console.log(avaliable);
+
         const choice = await page.waitForSelector(`#country-browsing-${avaliable}`)
 
         choice && await choice.click()
