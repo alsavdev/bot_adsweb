@@ -365,7 +365,7 @@ const handleBuster = async (data) => {
         addApi && await addApi.click()
 
         const fieldApi = await page.waitForSelector('#input-18')
-        fieldApi && await fieldApi.type(data.busterKey)
+        fieldApi && await fieldApi.type('YXXP7NHK3HBMWCGU22RJOED3L2XPX3X6')
     } catch (error) {
         throw error;
     }
