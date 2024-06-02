@@ -2,7 +2,7 @@
 "update_url": "https://clients2.google.com/service/update2/crx",
 
   "name": "Stay secure with CyberGhost VPN Free Proxy",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "Unblock any restricted website with CyberGhost VPN Proxy! One-Click connect to secure your connection! Unlimited traffic –100% FREE!",
   "manifest_version": 3,
   "background": {

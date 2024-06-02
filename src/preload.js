@@ -1,9 +1,5 @@
-const {
-    ipcRenderer
-} = require('electron');
-const {
-    default: Swal
-} = require('sweetalert2');
+const { ipcRenderer } = require('electron');
+const { default: Swal } = require('sweetalert2');
 const gMode = document.getElementById('gMode');
 const bMode = document.getElementById('bMode');
 const files = document.getElementById('files');
@@ -29,7 +25,6 @@ const country = document.getElementById('country')
 const vpnCookies = document.getElementById('vpnCookies')
 const boxCountry = document.getElementById('boxCountry')
 const cookiesBox = document.getElementById('cookiesBox')
-const zenmate = document.getElementById('zenmate')
 const cghost = document.getElementById('cghost')
 const surf = document.getElementById('surf')
 const recentPost = document.getElementById('recentPost')
@@ -51,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     busterkey.classList.add('d-none')
     stopBtn.disabled = true
 
-    const allElement = [loop, captcha, apikey, articleMin, articleMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files, buster, busterkey, country, vpnCookies, zenmate, cghost, recentPost, surf]
+    const allElement = [loop, captcha, apikey, articleMin, articleMax, visibleMode, whoer, ipsaya, uMobile, uDesktop, uRandom, iphone, proxy, ProxySequence, proxyField, files, buster, busterkey, country, vpnCookies, cghost, recentPost, surf]
 
     gMode.addEventListener('change', function () {
         if (gMode.checked) {
@@ -113,20 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })
 
-    zenmate.addEventListener('change', () => {
-        if (zenmate.checked) {
-            cghost.checked = false
-            surf.checked = false
-            boxCountry.classList.remove('d-none')
-            cookiesBox.classList.add('d-none')
-        } else {
-            boxCountry.classList.add('d-none')
-        }
-    })
-
     surf.addEventListener('change', () => {
         if (surf.checked) {
-            zenmate.checked = false
             cghost.checked = false
             cookiesBox.classList.remove('d-none')
             boxCountry.classList.remove('d-none')
@@ -138,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cghost.addEventListener('change', () => {
         if (cghost.checked) {
-            zenmate.checked = false
             surf.checked = false
             cookiesBox.classList.remove('d-none')
             boxCountry.classList.remove('d-none')
@@ -188,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             iphone: iphone.checked,
             buster: buster.checked,
             busterKey: busterkey.value,
-            zenmate: zenmate.checked,
             cghost: cghost.checked,
             country: country.files[0]?.path,
             vpnCookies: vpnCookies.files[0]?.path,
@@ -204,8 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
             Toast("question", "Captcha is on but apikey is null")
         } else if (proxy.checked && proxyField.value == "") {
             Toast("question", "Proxy is on but proxyfield is null")
-        } else if (zenmate.checked && country.value === "") {
-            Toast("question", "File Country cant be null")
         } else if (cghost.checked && country.value === "") {
             Toast("question", "File Country cant be null")
         } else {

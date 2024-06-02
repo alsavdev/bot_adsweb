@@ -9,13 +9,12 @@ puppeteer.use(stealth());
 
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
-const zenmate = path.join(process.cwd(), "src/bot/extension/zenmate/");
 const cghost = path.join(process.cwd(), "src/bot/extension/cghost/");
 const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
 
 let stop = false
-let browser, page, pages, checkPop;
+let browser, page;
 let countSuccess = 0;
 let countFailed = 0
 
@@ -39,7 +38,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         proxyServer = `${ip}:${port}`
     }
 
-    const extensionOption = data.zenmate ? zenmate : data.cghost ? cghost : data.surf ? surfshark : spoof;
+    const extensionOption = data.cghost ? cghost : data.surf ? surfshark : spoof;
     const buserOption = data.buster ? captcha : spoof;
 
     let userAgent;
@@ -98,11 +97,12 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
             password: `${saveProxy[1]}`
         });
 
-        data.buster && await handleBuster(data)
-        data.zenmate && await vpnZenMate(data, log)
-        data.cghost && await vpnCghost(data, log)
+        data.buster && await handleBuster()
+        data.cghost && await vpnCghost(data)
+
         data.surf && await vpnSurfShark(data, log)
         data.whoer && await getWhoerData(log)
+        await page.sleep(999999)
 
         page.on('dialog', async dialog => {
             log(dialog.message())
@@ -319,7 +319,7 @@ const getWhoerData = async (log) => {
     }
 }
 
-const handleBuster = async (data) => {
+const handleBuster = async () => {
     try {
         const pathId = path.join(process.cwd(), 'src/bot/data/id.txt');
         const id = fs.readFileSync(pathId, 'utf-8')
@@ -371,126 +371,8 @@ const handleBuster = async (data) => {
     }
 }
 
-const vpnZenMate = async (data, log) => {
+const vpnCghost = async (data) => {
     try {
-        log("[INFO] Start Zenmate VPN")
-        const pathId = path.join(process.cwd(), 'src/bot/data/idzen.txt');
-        const id = fs.readFileSync(pathId, 'utf-8')
-        if (id === '') {
-            await page.goto('chrome://extensions', {
-                waitUntil: ['domcontentloaded', "networkidle2"],
-                timeout: 120000
-            })
-        } else {
-            await page.goto(`chrome-extension://${id.trim()}/index.html`, {
-                waitUntil: ['domcontentloaded', "networkidle2"],
-                timeout: 120000
-            })
-        }
-
-        if (id === '') {
-            const idExtension = await page.evaluateHandle(
-                `document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[${data.buster ? 1 : 0}]`
-            );
-            await page.evaluate(e => e.style = "", idExtension)
-
-            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
-
-            await page.goto(`chrome-extension://${id}/index.html`, {
-                waitUntil: ['domcontentloaded', "networkidle2"],
-                timeout: 60000
-            })
-
-            fs.writeFileSync(pathId, id)
-        }
-
-        await page.sleep(3000)
-
-        const closeTour = await page.waitForSelector('.close-btn')
-        closeTour && await closeTour.click()
-
-        await page.sleep(3000)
-
-        const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
-        pickCountry && await pickCountry.click()
-
-        await page.sleep(3000)
-
-        const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== "");
-        avaliable = region[Math.floor(Math.random() * region.length)]
-
-        const choice = await page.waitForSelector(`#country-browsing-${avaliable}`)
-
-        choice && await choice.click()
-
-        // const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
-        // search && await search.click()
-
-        // const searchBox = await page.waitForSelector('input[placeholder="Search"]')
-
-
-        // searchBox && await searchBox.click({clickCount : 2})
-        // searchBox && await searchBox.type(region[Math.floor(Math.random() * region.length)])
-
-        // if ((await page.$('body > app-root > main > app-servers > div > div.alert.alert-danger.text-center.mt-2'))) {
-        //     const back = await page.$('body > app-root > main > app-servers > div > div:nth-child(2) > span')
-        //     await back.click()
-
-        //     const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
-        //     pickCountry && await pickCountry.click()
-
-        //     await page.sleep(3000)
-
-        //     const search = await page.$("body > app-root > main > app-servers > div > div:nth-child(1) > span.nav-link.right-link.p-0.pointer")
-        //     search && await search.click()
-        // }
-
-        // const country = await page.waitForSelector('body > app-root > main > app-servers > div > div.pt-4 > div > app-servers-list > div > p > span')
-        // country && await country.click()
-
-        await page.sleep(5000)
-        log("[INFO] Ready Zenmate VPN")
-    } catch (error) {
-        throw error;
-    }
-}
-
-const vpnCghost = async (data, log) => {
-    try {
-        // #Beta cookies future.
-        // if (data.cookiesCghost != '') {
-        //     const pathCookies = path.join(process.cwd(), "src/bot/data/ck.json");
-        //     let userCookies = '';
-
-        //     try {
-        //         userCookies = fs.readFileSync(pathCookies, 'utf-8');
-        //     } catch (err) {
-        //         log('[ERROR] Error reading user cookies file:', err);
-        //     }
-
-        //     if (userCookies === '') {
-        //         try {
-        //             const cookiesData = fs.readFileSync(data.vpnCookies, 'utf-8');
-        //             try {
-        //                 const readyCookies = JSON.parse(cookiesData);
-        //                 fs.writeFileSync(pathCookies, JSON.stringify(readyCookies));
-        //                 await page.setCookie(...readyCookies);
-        //             } catch (err) {
-        //                 log('[ERROR] Error parsing cookies data:', err);
-        //             }
-        //         } catch (err) {
-        //             log('[ERROR] Error reading cookies file:', err);
-        //         }
-        //     } else {
-        //         try {
-        //             const cookies = JSON.parse(userCookies);
-        //             await page.setCookie(...cookies);
-        //         } catch (err) {
-        //             log('[ERROR] Error parsing user cookies:', err);
-        //         }
-        //     }
-        // }
-
         const pathId = path.join(process.cwd(), 'src/bot/data/idghost.txt');
         const id = fs.readFileSync(pathId, 'utf-8')
         if (id === '') {
@@ -529,26 +411,20 @@ const vpnCghost = async (data, log) => {
         await page.sleep(3000)
 
         const regionFiles = fs.readFileSync(data.country, 'utf-8').split('\n')
-        let regionId = []
 
-        regionFiles.forEach((data) => {
-            regionId.push(data)
-        })
+        let region = [...regionFiles];
 
-        await page.evaluate((regionId) => {
-            let region;
-            if (regionId.length > 1) {
-                region = regionId[Math.floor(Math.random() * regionId.length)]
-            } else {
-                region = regionId.join('')
-            }
+        const randomCountry = region[Math.floor(Math.random() * region.length)].trim().toLowerCase();
+        const pickerCountry = await page.$$("mat-option > .mat-option-text")
 
-            const country = document.querySelectorAll('mat-option > .mat-option-text')
-            country.forEach((e) => {
-                const reg = e.innerText
-                reg.toLowerCase().includes(region) && e.click()
-            })
-        }, regionId)
+        for (let i = 0; i < pickerCountry.length; i++) {
+            const country = await page.evaluate((e) => e.textContent.trim().toLowerCase(), pickerCountry[i]);
+            
+            if (country.includes(randomCountry)) {
+                await page.evaluate((e) => e.click(), pickerCountry[i]);
+                break;
+            } 
+        }
 
         await page.sleep(3000)
 

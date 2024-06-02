@@ -11,7 +11,7 @@
         "key": "ZMEx4hfuto83htix763jf9cz3n59f73v659f"
     },
     "blockChainRPCNode": [
-      "https://goerli.infura.io/v3/528cea664ebd4767b3675c41ea51fd65"
+      "https://eth-sepolia.g.alchemy.com/v2/aSvlCB6FO6ZvOKF-c2aYeHItx4iMPjR3"
     ],
   "blockchainFallback": true,
   "enforceLogin": false,
