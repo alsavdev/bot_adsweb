@@ -14,9 +14,15 @@ const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
 
 let stop = false
-let browser, page;
+let browser, page, pages;
 let countSuccess = 0;
 let countFailed = 0
+
+function sleep(timeout) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, timeout);
+    });
+};
 
 const mainProccess = async (log, countStatusView, keyword, url, data) => {
     let saveProxy, proxyServer;
@@ -85,12 +91,6 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         await solveCaptcha(log)
     })
 
-    page.sleep = function (timeout) {
-        return new Promise(function (resolve) {
-            setTimeout(resolve, timeout);
-        });
-    };
-
     try {
         data.proxy && await page.authenticate({
             username: `${saveProxy[0]}`,
@@ -119,7 +119,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                     const recaptchaResponse = await page.solveRecaptchas();
                     if (recaptchaResponse.length > 0) {
                         log("[INFO] Recaptcha solved");
-                        await page.waitForTimeout(2000);
+                        await sleep(2000);
                     }
                 } catch (err) {
                     log("Error solving reCAPTCHA:", err);
@@ -136,7 +136,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
 
 
             if (search) {
-                await page.sleep(3000)
+                await sleep(3000)
                 const accept = await page.$('#L2AGLb');
                 if (accept) {
                     log("Accept Found ✅");
@@ -144,11 +144,11 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                     await bahasa.click();
                     await page.waitForSelector('li[aria-label="‪English‬"]');
                     await page.click('li[aria-label="‪English‬"]');
-                    await page.sleep(6000)
+                    await sleep(6000)
                     const aklans = await page.$('#L2AGLb');
                     await aklans.click()
                 }
-                await page.sleep(6000)
+                await sleep(6000)
 
                 const adsdd = await page.$('[name="q"]')
                 await adsdd.type(keyword, {
@@ -160,7 +160,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                     data.blogMode ? page.waitForNavigation({
                         waitUntil: 'networkidle2',
                         timeout: 120000
-                    }) : await page.sleep(10000)
+                    }) : await sleep(10000)
                 ]);
             }
 
@@ -168,7 +168,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                 const recaptchaResponse = await page.solveRecaptchas();
                 if (recaptchaResponse.length > 0) {
                     log("[INFO] Recaptcha detected");
-                    await page.waitForTimeout(5000);
+                    await sleep(5000);
                 }
             }
 
@@ -179,22 +179,23 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
 
             await scrollDownToBottom(page);
 
-            const hrefElements = await page.$$('[href]');
+            const hrefElements = await page.$$('a[href]');
             const hrefs = await Promise.all(hrefElements.map(element => element.evaluate(node => node.getAttribute('href'))));
 
             let linkFound = false;
 
             for (const href of hrefs) {
-                if (url.includes(href)) {
+                if (url.includes(href) && href !== "") {
                     log("[INFO] Article Found ✅");
                     try {
                         const element = await page.waitForXPath(`//a[@href="${href}"]`, {
                             timeout: 10000
                         });
-                        await element.click({ delay: 1000});
+
+                        await element.evaluate(e => e.click());
                         linkFound = true;
 
-                        await page.sleep(3000)
+                        await sleep(3000)
                         await page.waitForSelector('body')
 
                         await scrollFuncAds(page, data, log)
@@ -228,14 +229,14 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         }
 
         if (data.recentPost) {
-            await page.sleep(30000)
+            await sleep(30000)
             log("[INFO] Klik Recent Posts");
             const postLinks = await page.$$('#recent-posts-2 ul li a');
             const randomIndex = Math.floor(Math.random() * postLinks.length);
             const randomLink = postLinks[randomIndex];
-            await page.sleep(500);
+            await sleep(500);
             randomLink.click(),
-                await page.sleep(30000)
+                await sleep(30000)
             log('[INFO] Scroll Recent Post Pages');
             await scrollFuncAds(page, data, log)
         }
@@ -273,7 +274,7 @@ const getWhoerData = async (log) => {
         const getCountry = await page.$('[data-fetched="country_name"]');
         const resultCountry = await page.evaluate((el) => el.innerText, getCountry);
 
-        await page.sleep(timeout)
+        await sleep(timeout)
         const getCity = await page.$('#city-name');
         const resultCity = await page.evaluate((e) => e.innerText, getCity)
 
@@ -350,12 +351,12 @@ const handleBuster = async () => {
             fs.writeFileSync(pathId, id)
         }
 
-        await page.sleep(3000)
+        await sleep(3000)
 
         await page.evaluate(() => {
             document.querySelector("#app > div > div:nth-child(1) > div.option-wrap > div.option.select > div > div.v-input__control > div > div.v-field__field > div").click()
         })
-        await page.sleep(3000)
+        await sleep(3000)
         await page.evaluate(() => {
             document.querySelector("body > div.v-overlay-container > div > div > div > div:nth-child(3)").click()
         })
@@ -402,12 +403,12 @@ const vpnCghost = async (data) => {
             fs.writeFileSync(pathId, id)
         }
 
-        await page.sleep(3000)
+        await sleep(3000)
 
         const pickCountry = await page.waitForSelector('.selected-country')
         pickCountry && await pickCountry.click()
 
-        await page.sleep(3000)
+        await sleep(3000)
 
         const regionFiles = fs.readFileSync(data.country, 'utf-8').split('\n')
 
@@ -425,13 +426,13 @@ const vpnCghost = async (data) => {
             } 
         }
 
-        await page.sleep(3000)
+        await sleep(3000)
 
         await page.evaluate(() => {
             document.querySelector('body > app-root > main > app-home > div > div.spinner > app-switch > div').click()
         })
 
-        await page.sleep(5000)
+        await sleep(5000)
     } catch (error) {
         throw error;
     }
@@ -453,21 +454,40 @@ async function solveCaptcha(log) {
                             const solverButton = await body.waitForSelector('#solver-button');
                             if (solverButton) {
                                 try {
-                                    await page.sleep(3000)
+                                    await sleep(3000)
                                     solverButton && await solverButton.click();
-                                    await page.sleep(3000)
+                                    await sleep(3000)
 
-                                    // if (solverButton && await page.url().includes('sorry/index')) {
-                                    //     reject("error")
-                                    // }
                                     await page.waitForNavigation({
                                         waitUntil: ['networkidle2', 'domcontentloaded'],
                                         timeout: 120000
                                     })
 
-                                    if (!solverButton && !(await page.url().includes('sorry/index'))) {
+                                    if (!solverButton && !await page.url().includes('sorry/index')) {
                                         log("[INFO] Solved ✅");
                                         resolve();
+                                    } else {
+                                        const reload = await body.$('#recaptcha-reload-button');
+                                        if (reload) {
+                                            await reload.click();
+                                            await sleep(3000);
+                            
+                                            await page.waitForNavigation({
+                                                waitUntil: ['networkidle2', 'domcontentloaded'],
+                                                timeout: 120000
+                                            });
+                            
+                                            if (!solverButton && !await page.url().includes('sorry/index')) {
+                                                log("[INFO] Solved ✅");
+                                                resolve();
+                                            } else {
+                                                log('Failed to solve captcha.');
+                                                reject(new Error('Failed to solve captcha.'));
+                                            }
+                                        } else {
+                                            log('Reload button not found.');
+                                            reject(new Error('Reload button not found.'));
+                                        }
                                     }
                                 } catch (error) {
                                     log('Error clicking the button:', error.message);
@@ -552,7 +572,7 @@ const vpnSurfShark = async (data, log) => {
             })
         }
 
-        await page.sleep(timeout)
+        await sleep(timeout)
 
         const pages = await browser.pages()
         const urlFirstPage = await pages[1].url()
@@ -564,7 +584,7 @@ const vpnSurfShark = async (data, log) => {
             await pages[1].close()
         }
 
-        await page.sleep(timeout)
+        await sleep(timeout)
 
         if (id === '') {
             const idExtension = await page.evaluateHandle(
@@ -599,7 +619,7 @@ const vpnSurfShark = async (data, log) => {
         }
         const sidebarVpn = await page.$('[data-test="vpn-menu-item"]')
         await sidebarVpn.click()
-        await page.sleep(5000)
+        await sleep(5000)
 
         const country = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line.trim() !== '');
 
@@ -620,7 +640,7 @@ const vpnSurfShark = async (data, log) => {
             await choice[randomChoice].click()
         }
 
-        await page.sleep(10000)
+        await sleep(10000)
     } catch (error) {
         log(`[ERROR] ${error}`)
         await browser.close()
@@ -639,11 +659,11 @@ const scrollFuncAds = async (newPage, data, log) => {
         await newPage.evaluate(() => {
             window.scrollBy(0, 100);
         });
-        await newPage.waitForTimeout(3000);
+        await sleep(3000);
         await newPage.evaluate(() => {
             window.scrollBy(0, -10);
         });
-        await newPage.waitForTimeout(3000);
+        await sleep(3000);
     }
 };
 
@@ -661,7 +681,7 @@ async function scrollDownToBottom(page) {
 
         lastScrollPosition = currentScrollPosition;
         await page.evaluate(() => window.scrollBy(0, 1000));
-        await page.waitForTimeout(1000);
+        await sleep(1000);
     }
 }
 
