@@ -102,7 +102,6 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
 
         data.surf && await vpnSurfShark(data, log)
         data.whoer && await getWhoerData(log)
-        await page.sleep(999999)
 
         page.on('dialog', async dialog => {
             log(dialog.message())
