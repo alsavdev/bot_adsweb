@@ -4,12 +4,15 @@ const fs = require('fs');
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
 const stealth = require("puppeteer-extra-plugin-stealth");
 const UserAgent = require('user-agents');
-const { executablePath } = require('puppeteer');
+const {
+    executablePath
+} = require('puppeteer');
 puppeteer.use(stealth());
 
 const spoof = path.join(process.cwd(), "src/bot/extension/spoof/");
 const captcha = path.join(process.cwd(), "src/bot/extension/captcha/");
 const cghost = path.join(process.cwd(), "src/bot/extension/cghost/");
+const zenmate = path.join(process.cwd(), "src/bot/extension/zenmate/");
 const surfshark = path.join(process.cwd(), "src/bot/extension/surfshark/");
 const timeout = 3000
 
@@ -44,7 +47,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         proxyServer = `${ip}:${port}`
     }
 
-    const extensionOption = data.cghost ? cghost : data.surf ? surfshark : spoof;
+    const extensionOption = data.zenmate ? zenmate : data.cghost ? cghost : data.surf ? surfshark : spoof;
     const buserOption = data.buster ? captcha : spoof;
 
     let userAgent;
@@ -88,7 +91,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
     pages = await browser.pages()
 
     data.buster && page.on('load', async () => {
-        await solveCaptcha(log)
+        await solveCaptcha(log, countStatusView)
     })
 
     try {
@@ -98,9 +101,12 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         });
 
         data.buster && await handleBuster()
-        data.cghost && await vpnCghost(data)
 
+        // VPN SECTION
+        data.zenmate && await vpnZenMate(data, log)
+        data.cghost && await vpnCghost(data)
         data.surf && await vpnSurfShark(data, log)
+
         data.whoer && await getWhoerData(log)
 
         page.on('dialog', async dialog => {
@@ -139,7 +145,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                 await sleep(3000)
                 const accept = await page.$('#L2AGLb');
                 if (accept) {
-                    log("Accept Found ✅");
+                    log("[INFO] Accept Found ✅");
                     const bahasa = await page.$('#vc3jof');
                     await bahasa.click();
                     await page.waitForSelector('li[aria-label="‪English‬"]');
@@ -173,7 +179,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
             }
 
             const locator = await page.$$('g-raised-button');
-            if (locator.length >= 2) {
+            if (locator.length > 2) {
                 await locator[1].click();
             }
 
@@ -193,6 +199,7 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
                         });
 
                         await element.evaluate(e => e.click());
+
                         linkFound = true;
 
                         await sleep(3000)
@@ -245,6 +252,8 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
         await browser.close()
     } catch (error) {
         log('[ERROR] ' + error + "\n")
+        countFailed++
+        countStatusView(false, countFailed)
         await browser.close()
     }
 };
@@ -358,14 +367,16 @@ const handleBuster = async () => {
         })
         await sleep(3000)
         await page.evaluate(() => {
-            document.querySelector("body > div.v-overlay-container > div > div > div > div:nth-child(3)").click()
+            document.querySelector("body > div.v-overlay-container > div > div > div > div:nth-child(2)").click()
         })
 
-        const addApi = await page.$('#app > div > div:nth-child(1) > div.option-wrap > div.wit-add-api > button')
-        addApi && await addApi.click()
+        // const addApi = await page.$('#app > div > div:nth-child(1) > div.option-wrap > div.wit-add-api > button')
+        // addApi && await addApi.click()
 
-        const fieldApi = await page.waitForSelector('#input-18')
-        fieldApi && await fieldApi.type('YXXP7NHK3HBMWCGU22RJOED3L2XPX3X6')
+        // const fieldApi = await page.waitForSelector('#input-18')
+        // fieldApi && await fieldApi.type('YXXP7NHK3HBMWCGU22RJOED3L2XPX3X6')
+        const fieldApi = await page.waitForSelector('#input-14')
+        fieldApi && await fieldApi.type('AIzaSyCszmdIs6n-Un2tVQlPj41aWmVuPvNp-e0')
     } catch (error) {
         throw error;
     }
@@ -419,11 +430,11 @@ const vpnCghost = async (data) => {
 
         for (let i = 0; i < pickerCountry.length; i++) {
             const country = await page.evaluate((e) => e.textContent.trim().toLowerCase(), pickerCountry[i]);
-            
+
             if (country.includes(randomCountry)) {
                 await page.evaluate((e) => e.click(), pickerCountry[i]);
                 break;
-            } 
+            }
         }
 
         await sleep(3000)
@@ -438,11 +449,11 @@ const vpnCghost = async (data) => {
     }
 }
 
-async function solveCaptcha(log) {
+async function solveCaptcha(log, countStatusView) {
     return new Promise(async (resolve, reject) => {
         try {
             const captchaBox = await page.$('[title="reCAPTCHA"]')
-            if (captchaBox) {
+            if (captchaBox && (await page.url().includes('sorry/index'))) {
                 log("[INFO] Captcha Found Solve....");
                 await captchaBox.click()
                 const elIframe = await page.waitForSelector('iframe[title="recaptcha challenge expires in two minutes"]');
@@ -456,7 +467,17 @@ async function solveCaptcha(log) {
                                 try {
                                     await sleep(3000)
                                     solverButton && await solverButton.click();
-                                    await sleep(3000)
+                                    await sleep(5000)
+
+                                    const captchaFailed = await body.$('.rc-doscaptcha-header-text')
+                                    const errorText = await body.evaluate(e => e.innerText.trim(), captchaFailed)
+
+                                    if (errorText.includes('Try again later')) {
+                                        log("[INFO] Captcha Failed ❌");
+                                        countFailed++
+                                        countStatusView(false, countFailed)
+                                        await browser.close();
+                                    }
 
                                     await page.waitForNavigation({
                                         waitUntil: ['networkidle2', 'domcontentloaded'],
@@ -466,29 +487,8 @@ async function solveCaptcha(log) {
                                     if (!solverButton && !await page.url().includes('sorry/index')) {
                                         log("[INFO] Solved ✅");
                                         resolve();
-                                    } else {
-                                        const reload = await body.$('#recaptcha-reload-button');
-                                        if (reload) {
-                                            await reload.click();
-                                            await sleep(3000);
-                            
-                                            await page.waitForNavigation({
-                                                waitUntil: ['networkidle2', 'domcontentloaded'],
-                                                timeout: 120000
-                                            });
-                            
-                                            if (!solverButton && !await page.url().includes('sorry/index')) {
-                                                log("[INFO] Solved ✅");
-                                                resolve();
-                                            } else {
-                                                log('Failed to solve captcha.');
-                                                reject(new Error('Failed to solve captcha.'));
-                                            }
-                                        } else {
-                                            log('Reload button not found.');
-                                            reject(new Error('Reload button not found.'));
-                                        }
                                     }
+
                                 } catch (error) {
                                     log('Error clicking the button:', error.message);
                                     reject(error);
@@ -510,12 +510,81 @@ async function solveCaptcha(log) {
                     reject(new Error('Iframe with title "captcha" not found on the page.'));
                 }
             }
-
         } catch (error) {
             log(error);
             reject(error);
         }
     });
+}
+
+const vpnZenMate = async (data, log) => {
+    try {
+        log("[INFO] Start Zenmate VPN")
+        const pathId = path.join(process.cwd(), 'src/bot/data/idzen.txt');
+        const id = fs.readFileSync(pathId, 'utf-8')
+        if (id === '') {
+            await page.goto('chrome://extensions', {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        } else {
+            await page.goto(`chrome-extension://${id.trim()}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 120000
+            })
+        }
+
+        if (id === '') {
+            const idExtension = await page.evaluateHandle(
+                `document.querySelector("body > extensions-manager").shadowRoot.querySelector("#items-list").shadowRoot.querySelectorAll("extensions-item")[${data.buster ? 1 : 0}]`
+            );
+            await page.evaluate(e => e.style = "", idExtension)
+
+            const id = await page.evaluate(e => e.getAttribute('id'), idExtension)
+
+            await page.goto(`chrome-extension://${id}/index.html`, {
+                waitUntil: ['domcontentloaded', "networkidle2"],
+                timeout: 60000
+            })
+
+            fs.writeFileSync(pathId, id)
+        }
+
+        await sleep(3000)
+
+        const closeTour = await page.waitForSelector('.close-btn')
+        closeTour && await closeTour.click()
+
+        await sleep(3000)
+
+        const pickCountry = await page.waitForSelector('body > app-root > main > app-home > div > div.proxy-status-container > div.pt-1.location-info > div > a')
+        pickCountry && await pickCountry.click()
+
+        await sleep(3000)
+
+        const region = fs.readFileSync(data.country, 'utf-8').split('\n').filter(line => line !== "");
+        available = region[Math.floor(Math.random() * region.length)]
+
+        const choice = await page.waitForSelector(`#country-browsing-${available}`)
+
+        choice && await choice.click()
+
+        await sleep(5000)
+        
+        const connectStatus = await page.$('.timer-container')
+
+        const times = await page.evaluate(e => e.innerText.trim(), connectStatus)
+
+        if (times.includes('00:00:00')) {
+            log("[INFO] Failed Connect VPN");
+            await browser.close()
+        } else {
+            log("[INFO] Ready Zenmate VPN")
+        }
+        
+    } catch (error) {
+        throw error;
+    }
 }
 
 const vpnSurfShark = async (data, log) => {
