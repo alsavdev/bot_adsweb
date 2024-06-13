@@ -90,11 +90,12 @@ const mainProccess = async (log, countStatusView, keyword, url, data) => {
     page = await browser.newPage()
     pages = await browser.pages()
 
-    data.buster && page.on('load', async () => {
-        await solveCaptcha(log, countStatusView)
-    })
-
+    
     try {
+        data.buster && page.on('load', async () => {
+            await solveCaptcha(log, countStatusView)
+        })
+        
         data.proxy && await page.authenticate({
             username: `${saveProxy[0]}`,
             password: `${saveProxy[1]}`

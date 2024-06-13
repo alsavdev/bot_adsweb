@@ -1,7 +1,7 @@
 {
   "name": "bot-traffic",
   "productName": "bot-traffic",
-  "version": "2.0.2",
+  "version": "2.0.1",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
